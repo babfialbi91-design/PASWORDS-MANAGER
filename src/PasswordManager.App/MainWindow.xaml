@@ -1,0 +1,73 @@
+<Window x:Class="PasswordManager.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:PasswordManager.App.Views"
+        Title="مدير كلمات المرور"
+        Height="760" Width="1120"
+        MinHeight="620" MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BackgroundBrush}"
+        FontFamily="Segoe UI"
+        FlowDirection="RightToLeft"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="CanResize">
+
+    <Window.Resources>
+        <Style x:Key="NavButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
+            <Setter Property="HorizontalContentAlignment" Value="Right"/>
+            <Setter Property="Padding" Value="16,11"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="10,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- شاشة الدخول -->
+        <views:LoginView x:Name="LoginView"/>
+
+        <!-- لوحة التحكم -->
+        <Grid x:Name="Dashboard" Visibility="Collapsed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- الشريط الجانبي -->
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="18,22,18,18">
+                        <TextBlock Text="🔐" FontSize="34" HorizontalAlignment="Center"/>
+                        <TextBlock Text="مدير كلمات المرور" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                        <TextBlock x:Name="VaultStatusText" Text="الخزنة مفتوحة" FontSize="12" Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel DockPanel.Dock="Bottom" Margin="10,12">
+                        <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="8" Padding="10,10">
+                            <StackPanel>
+                                <TextBlock Text="ملف الخزنة" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                                <TextBlock x:Name="VaultPathText" TextWrapping="Wrap" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Button x:Name="LockButton" Content="🔒  قفل الخزنة" Style="{StaticResource GhostButton}" Margin="0,10,0,0" Click="LockButton_Click"/>
+                    </StackPanel>
+
+                    <StackPanel>
+                        <Button x:Name="NavPasswords" Content="🔑  كلمات المرور" Style="{StaticResource NavButton}" Background="#23252E" Click="NavButton_Click" Tag="passwords"/>
+                        <Button x:Name="NavGenerator" Content="🎲  مولد كلمات المرور" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="generator"/>
+                        <Button x:Name="NavTotp" Content="⏱️  رموز TOTP" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="totp"/>
+                        <Button x:Name="NavSettings" Content="⚙️  الإعدادات" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="settings"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- منطقة المحتوى -->
+            <Grid Grid.Column="1">
+                <views:PasswordsView x:Name="PasswordsView" Visibility="Visible"/>
+                <views:GeneratorView x:Name="GeneratorView" Visibility="Collapsed"/>
+                <views:TotpView x:Name="TotpView" Visibility="Collapsed"/>
+                <views:SettingsView x:Name="SettingsView" Visibility="Collapsed"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

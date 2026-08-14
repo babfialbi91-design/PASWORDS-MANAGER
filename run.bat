@@ -2,14 +2,14 @@
 title Password Manager
 setlocal
 
-set "EXE=%~dp0src\PasswordManager\bin\Release\net8.0\pm.exe"
+set "EXE=%~dp0src\PasswordManager.App\bin\Release\net8.0-windows\PasswordManager.exe"
 
 if not exist "%EXE%" (
     echo Building Password Manager...
-    dotnet build -c Release src\PasswordManager\PasswordManager.csproj || goto :error
+    dotnet build -c Release src\PasswordManager.App\PasswordManager.App.csproj || goto :error
 )
 
-"%EXE%" %*
+start "" "%EXE%" %*
 goto :eof
 
 :error
