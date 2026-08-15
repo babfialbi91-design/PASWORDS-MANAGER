@@ -13,10 +13,14 @@ public partial class MainWindow : Window
     private VaultSession? _session;
     private string _activeView = "passwords";
     private string? _updateUrl;
+    private string? _updateVersion;
 
     public MainWindow()
     {
         InitializeComponent();
+
+        Localization.LanguageChanged += OnLanguageChanged;
+        ApplyFlowDirection();
 
         var path = ResolveVaultPath();
         var vault = new VaultService(path);
@@ -29,6 +33,16 @@ public partial class MainWindow : Window
 
         Loaded += (_, _) => LoginView.FocusFirst();
     }
+
+    private void OnLanguageChanged()
+    {
+        ApplyFlowDirection();
+        if (UpdateBar.Visibility == Visibility.Visible && !string.IsNullOrEmpty(_updateVersion))
+            UpdateBarText.Text = string.Format(Localization.Get("Update_BarNew"), _updateVersion);
+    }
+
+    private void ApplyFlowDirection()
+        => FlowDirection = Localization.Instance.IsRtl ? System.Windows.FlowDirection.RightToLeft : System.Windows.FlowDirection.LeftToRight;
 
     private static string ResolveVaultPath()
     {
@@ -69,8 +83,9 @@ public partial class MainWindow : Window
             if (info is null || !UpdateService.IsNewer(info.Version, UpdateService.CurrentVersion))
                 return;
 
+            _updateVersion = info.Version;
             _updateUrl = string.IsNullOrEmpty(info.DownloadUrl) ? info.ReleaseUrl : info.DownloadUrl;
-            UpdateBarText.Text = $"يتوفر تحديث جديد: الإصدار {info.Version}";
+            UpdateBarText.Text = string.Format(Localization.Get("Update_BarNew"), info.Version);
             UpdateBar.Visibility = Visibility.Visible;
             SettingsView.SetUpdateAvailable(info.Version, _updateUrl);
         }
@@ -134,7 +149,7 @@ public partial class MainWindow : Window
         var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
         timer.Tick += (_, _) =>
         {
-            VaultStatusText.Text = "الخزنة مفتوحة";
+            VaultStatusText.Text = Localization.Get("Sidebar_VaultOpen");
             timer.Stop();
         };
         timer.Start();
@@ -166,7 +181,11 @@ public partial class MainWindow : Window
             try { await _session.SaveAsync(); }
             catch (Exception ex)
             {
-                MessageBox.Show(this, $"تعذّر حفظ الخزنة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(this,
+                    string.Format(Localization.Get("Main_SaveError"), ex.Message),
+                    Localization.Get("Common_Error"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
             }
         }
         base.OnClosing(e);

@@ -1,23 +1,27 @@
 <UserControl x:Class="PasswordManager.App.Views.LoginView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FlowDirection="RightToLeft">
+             xmlns:loc="clr-namespace:PasswordManager.App">
 
     <Grid Background="{StaticResource BackgroundBrush}">
+        <ComboBox x:Name="LangBox" Width="120" Height="32"
+                  HorizontalAlignment="Left" VerticalAlignment="Top" Margin="14,14,0,0"
+                  Padding="8,2" FontSize="12" SelectionChanged="LangBox_SelectionChanged"/>
+
         <Border Width="440" HorizontalAlignment="Center" VerticalAlignment="Center"
                 Background="{StaticResource SurfaceBrush}" CornerRadius="16"
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="34,30">
 
             <StackPanel>
                 <TextBlock Text="🔐" FontSize="46" HorizontalAlignment="Center"/>
-                <TextBlock x:Name="TitleText" Text="مرحباً بك" FontSize="24" FontWeight="Bold"
+                <TextBlock x:Name="TitleText" Text="{Binding [Login_TitleUnlock], Source={x:Static loc:Localization.Instance}}" FontSize="24" FontWeight="Bold"
                            HorizontalAlignment="Center" Margin="0,12,0,0"/>
-                <TextBlock x:Name="SubtitleText" Text="" FontSize="12"
+                <TextBlock x:Name="SubtitleText" Text="{Binding [Login_SubUnlock], Source={x:Static loc:Localization.Instance}}" FontSize="12"
                            Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"
                            HorizontalAlignment="Center" Margin="0,8,0,0"/>
 
                 <StackPanel Margin="0,28,0,0">
-                    <TextBlock Text="كلمة المرور الرئيسية (8 أحرف على الأقل)" FontSize="12"
+                    <TextBlock Text="{Binding [Login_PasswordLabel], Source={x:Static loc:Localization.Instance}}" FontSize="12"
                                Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
                     <Grid>
                         <PasswordBox x:Name="PasswordInput" Padding="10,8" FontSize="14"
@@ -33,7 +37,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <CheckBox x:Name="ShowPassword" Content="إظهار كلمة المرور"
+                        <CheckBox x:Name="ShowPassword" Content="{Binding [Login_ShowPassword], Source={x:Static loc:Localization.Instance}}"
                                   VerticalAlignment="Center" Checked="ShowPassword_Changed" Unchecked="ShowPassword_Changed"/>
                         <TextBlock x:Name="StrengthText" Grid.Column="1" FontSize="12"
                                    Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center"/>
@@ -41,7 +45,7 @@
                 </StackPanel>
 
                 <StackPanel x:Name="ConfirmPanel" Visibility="Collapsed" Margin="0,16,0,0">
-                    <TextBlock Text="إعادة كتابة كلمة المرور للتأكيد" FontSize="12"
+                    <TextBlock Text="{Binding [Login_ConfirmLabel], Source={x:Static loc:Localization.Instance}}" FontSize="12"
                                Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
                     <PasswordBox x:Name="ConfirmInput" Padding="10,8" FontSize="14"
                                  PasswordChanged="ConfirmInput_PasswordChanged" KeyDown="Input_KeyDown"/>
@@ -51,10 +55,10 @@
                 <TextBlock x:Name="ErrorText" Foreground="{StaticResource DangerBrush}" FontSize="12"
                            TextWrapping="Wrap" Visibility="Collapsed" Margin="0,12,0,0"/>
 
-                <Button x:Name="ActionButton" Content="دخول" Style="{StaticResource PrimaryButton}"
+                <Button x:Name="ActionButton" Content="{Binding [Login_ActionUnlock], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource PrimaryButton}"
                         Margin="0,22,0,0" Padding="14,11" Click="ActionButton_Click"/>
 
-                <Button x:Name="ResetLink" Content="نسيت كلمة المرور؟  إعادة تعيين الخزنة"
+                <Button x:Name="ResetLink" Content="{Binding [Login_ResetLink], Source={x:Static loc:Localization.Instance}}"
                         Style="{StaticResource GhostButton}" Margin="0,10,0,0" Visibility="Collapsed"
                         Click="ResetLink_Click"/>
             </StackPanel>

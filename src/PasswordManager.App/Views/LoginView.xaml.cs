@@ -32,6 +32,25 @@ public partial class LoginView : UserControl
     public LoginView()
     {
         InitializeComponent();
+
+        LangBox.Items.Add("العربية");
+        LangBox.Items.Add("English");
+        LangBox.SelectedIndex = Localization.Instance.IsRtl ? 0 : 1;
+
+        Localization.LanguageChanged += OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged()
+    {
+        LangBox.SelectedIndex = Localization.Instance.IsRtl ? 0 : 1;
+        ApplyMode();
+        UpdateStrength(CurrentPassword());
+    }
+
+    private void LangBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (LangBox.SelectedIndex < 0) return;
+        Localization.Instance.Language = LangBox.SelectedIndex == 0 ? PasswordManager.App.Language.Arabic : PasswordManager.App.Language.English;
     }
 
     public void FocusFirst()
@@ -67,17 +86,17 @@ public partial class LoginView : UserControl
     {
         if (IsSetupMode)
         {
-            TitleText.Text = "إنشاء خزنة جديدة";
-            SubtitleText.Text = "هذه أول مرة تستخدم فيها الأداة — حدد كلمة مرور رئيسية تُشفّر بها كل بياناتك. إن نسيتها لن يستطيع أحد استرجاعها.";
-            ActionButton.Content = "إنشاء الخزنة";
+            TitleText.Text = Localization.Get("Login_TitleSetup");
+            SubtitleText.Text = Localization.Get("Login_SubSetup");
+            ActionButton.Content = Localization.Get("Login_ActionSetup");
             ConfirmPanel.Visibility = Visibility.Visible;
             ResetLink.Visibility = Visibility.Collapsed;
         }
         else
         {
-            TitleText.Text = "فتح الخزنة";
-            SubtitleText.Text = "أدخل كلمة المرور الرئيسية لفتح بياناتك.";
-            ActionButton.Content = "دخول";
+            TitleText.Text = Localization.Get("Login_TitleUnlock");
+            SubtitleText.Text = Localization.Get("Login_SubUnlock");
+            ActionButton.Content = Localization.Get("Login_ActionUnlock");
             ConfirmPanel.Visibility = Visibility.Collapsed;
             ResetLink.Visibility = Visibility.Visible;
         }
@@ -113,17 +132,19 @@ public partial class LoginView : UserControl
             return;
         }
 
-        var label = PasswordQuality.StrengthLabel(password);
-        var color = label switch
-        {
-            "قوية جداً" => (Brush)FindResource("SuccessBrush"),
-            "قوية" => (Brush)FindResource("SuccessBrush"),
-            "متوسطة" => (Brush)FindResource("WarningBrush"),
-            _ => (Brush)FindResource("DangerBrush")
-        };
-        StrengthText.Text = $"القوة: {label}";
+        var strength = PasswordQuality.Strength(password);
+        var color = StrengthColor(strength);
+        StrengthText.Text = string.Format(Localization.Get("Login_Strength"), Localization.Strength(strength));
         StrengthText.Foreground = color;
     }
+
+    private static Brush StrengthColor(PasswordStrength strength)
+        => strength switch
+        {
+            PasswordStrength.VeryStrong or PasswordStrength.Strong => (Brush)Application.Current.FindResource("SuccessBrush"),
+            PasswordStrength.Medium => (Brush)Application.Current.FindResource("WarningBrush"),
+            _ => (Brush)Application.Current.FindResource("DangerBrush")
+        };
 
     private void ConfirmInput_PasswordChanged(object sender, RoutedEventArgs e)
     {
@@ -137,12 +158,12 @@ public partial class LoginView : UserControl
         ConfirmHintText.Visibility = Visibility.Visible;
         if (match)
         {
-            ConfirmHintText.Text = "✓ متطابقة";
+            ConfirmHintText.Text = Localization.Get("Login_Match");
             ConfirmHintText.Foreground = (Brush)FindResource("SuccessBrush");
         }
         else
         {
-            ConfirmHintText.Text = "غير متطابقة — راجع كلمة المرور";
+            ConfirmHintText.Text = Localization.Get("Login_NoMatch");
             ConfirmHintText.Foreground = (Brush)FindResource("DangerBrush");
         }
     }
@@ -176,19 +197,19 @@ public partial class LoginView : UserControl
             {
                 if (password.Length < 8)
                 {
-                    SetError("كلمة المرور يجب أن تكون 8 أحرف على الأقل.");
+                    SetError(Localization.Get("Login_ErrTooShort"));
                     PasswordInput.Focus();
                     return;
                 }
                 if (string.IsNullOrEmpty(ConfirmInput.Password))
                 {
-                    SetError("أعد كتابة نفس كلمة المرور في حقل التأكيد ثم تابع.");
+                    SetError(Localization.Get("Login_ErrNeedConfirm"));
                     ConfirmInput.Focus();
                     return;
                 }
                 if (password != ConfirmInput.Password)
                 {
-                    SetError("كلمتا المرور غير متطابقتين — تأكد أنهما متماثلتان.");
+                    SetError(Localization.Get("Login_ErrMismatch"));
                     ConfirmInput.SelectAll();
                     ConfirmInput.Focus();
                     return;
@@ -208,11 +229,11 @@ public partial class LoginView : UserControl
         }
         catch (CryptographicException)
         {
-            SetError("كلمة المرور غير صحيحة.");
+            SetError(Localization.Get("Login_ErrWrongPassword"));
         }
         catch (Exception ex)
         {
-            SetError($"تعذّر فتح الخزنة: {ex.Message}");
+            SetError(string.Format(Localization.Get("Login_ErrOpenFailed"), ex.Message));
         }
     }
 
@@ -221,8 +242,8 @@ public partial class LoginView : UserControl
         if (Vault is null) return;
 
         var result = MessageBox.Show(
-            "سيتم حذف كل كلمات المرور وحسابات TOTP نهائياً ولا يمكن استرجاعها.\nهل تريد المتابعة؟",
-            "إعادة تعيين الخزنة",
+            Localization.Get("Login_ResetConfirmMsg"),
+            Localization.Get("Login_ResetConfirmTitle"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
 

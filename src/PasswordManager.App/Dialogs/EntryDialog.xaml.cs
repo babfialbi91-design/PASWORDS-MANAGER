@@ -14,19 +14,20 @@ public partial class EntryDialog : Window
     public EntryDialog(VaultSession session, PasswordEntry? existing = null)
     {
         InitializeComponent();
+        FlowDirection = Localization.Instance.IsRtl ? System.Windows.FlowDirection.RightToLeft : System.Windows.FlowDirection.LeftToRight;
         _session = session;
 
         if (existing is null)
         {
             Entry = new PasswordEntry();
-            Title = "إضافة كلمة مرور";
-            WindowTitle.Text = "➕ إضافة كلمة مرور";
+            Title = Localization.Get("Entry_TitleAdd");
+            WindowTitle.Text = "➕ " + Localization.Get("Entry_TitleAdd");
         }
         else
         {
             Entry = existing;
-            Title = "تعديل كلمة المرور";
-            WindowTitle.Text = "✏️ تعديل كلمة المرور";
+            Title = Localization.Get("Entry_TitleEdit");
+            WindowTitle.Text = "✏️ " + Localization.Get("Entry_TitleEdit");
         }
 
         TitleInput.Text = Entry.Title;
@@ -48,15 +49,15 @@ public partial class EntryDialog : Window
 
     private void UpdateStrength()
     {
-        var label = PasswordQuality.StrengthLabel(PasswordInput.Text);
-        var color = label switch
+        var strength = PasswordQuality.Strength(PasswordInput.Text);
+        var color = strength switch
         {
-            "قوية جداً" => (Brush)FindResource("SuccessBrush"),
-            "قوية" => (Brush)FindResource("SuccessBrush"),
-            "متوسطة" => (Brush)FindResource("WarningBrush"),
+            PasswordStrength.VeryStrong or PasswordStrength.Strong => (Brush)FindResource("SuccessBrush"),
+            PasswordStrength.Medium => (Brush)FindResource("WarningBrush"),
             _ => (Brush)FindResource("DangerBrush")
         };
-        StrengthText.Text = $"قوة كلمة المرور: {label}   ({PasswordInput.Text.Length} حرفاً)";
+        StrengthText.Text = string.Format(Localization.Get("Entry_Strength"),
+            Localization.Strength(strength), PasswordInput.Text.Length);
         StrengthText.Foreground = color;
     }
 
@@ -81,7 +82,7 @@ public partial class EntryDialog : Window
         try
         {
             Clipboard.SetText(PasswordInput.Text);
-            CopyGeneratedButton.Content = "✓ نُسخت";
+            CopyGeneratedButton.Content = Localization.Get("Common_Copied");
         }
         catch
         {
@@ -93,14 +94,16 @@ public partial class EntryDialog : Window
     {
         if (string.IsNullOrWhiteSpace(TitleInput.Text))
         {
-            MessageBox.Show(this, "العنوان مطلوب.", "تنبيه", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, Localization.Get("Entry_ErrTitleRequired"), Localization.Get("Common_Notice"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
             TitleInput.Focus();
             return;
         }
 
         if (string.IsNullOrEmpty(PasswordInput.Text))
         {
-            MessageBox.Show(this, "كلمة المرور مطلوبة.", "تنبيه", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, Localization.Get("Entry_ErrPasswordRequired"), Localization.Get("Common_Notice"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
             PasswordInput.Focus();
             return;
         }

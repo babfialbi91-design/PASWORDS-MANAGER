@@ -9,7 +9,7 @@ namespace PasswordManager.App;
 public sealed class StrengthLabelConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        => PasswordQuality.StrengthLabel(value as string ?? string.Empty);
+        => Localization.Strength(PasswordQuality.Strength(value as string ?? string.Empty));
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         => throw new NotSupportedException();
@@ -19,12 +19,10 @@ public sealed class StrengthColorConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        var label = PasswordQuality.StrengthLabel(value as string ?? string.Empty);
-        var brush = label switch
+        var brush = PasswordQuality.Strength(value as string ?? string.Empty) switch
         {
-            "قوية جداً" => "#35D07F",
-            "قوية" => "#35D07F",
-            "متوسطة" => "#FFB020",
+            PasswordStrength.VeryStrong or PasswordStrength.Strong => "#35D07F",
+            PasswordStrength.Medium => "#FFB020",
             _ => "#FF5C5C"
         };
         return new SolidColorBrush((Color)ColorConverter.ConvertFromString(brush));

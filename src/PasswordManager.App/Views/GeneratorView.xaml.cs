@@ -15,6 +15,7 @@ public partial class GeneratorView : UserControl
     public GeneratorView()
     {
         InitializeComponent();
+        Localization.LanguageChanged += () => { if (_ready) Generate(); };
         Loaded += (_, _) =>
         {
             _ready = true;
@@ -69,19 +70,17 @@ public partial class GeneratorView : UserControl
             ResultText.Text = _current;
             NoticeText.Text = string.Empty;
 
-            var label = PasswordQuality.StrengthLabel(_current);
-            var color = label switch
+            var strength = PasswordQuality.Strength(_current);
+            StrengthText.Text = Localization.Strength(strength);
+            StrengthText.Foreground = strength switch
             {
-                "قوية جداً" => (Brush)FindResource("SuccessBrush"),
-                "قوية" => (Brush)FindResource("SuccessBrush"),
-                "متوسطة" => (Brush)FindResource("WarningBrush"),
+                PasswordStrength.VeryStrong or PasswordStrength.Strong => (Brush)FindResource("SuccessBrush"),
+                PasswordStrength.Medium => (Brush)FindResource("WarningBrush"),
                 _ => (Brush)FindResource("DangerBrush")
             };
-            StrengthText.Text = label;
-            StrengthText.Foreground = color;
 
             var entropy = PasswordGenerator.EstimateBitsOfEntropy(options);
-            EntropyText.Text = $"{entropy:0} بت";
+            EntropyText.Text = string.Format(Localization.Get("Gen_Bits"), entropy);
             EntropyText.Foreground = (Brush)FindResource("TextBrush");
         }
         catch (Exception ex)
@@ -101,14 +100,15 @@ public partial class GeneratorView : UserControl
         try
         {
             Clipboard.SetText(_current);
-            CopyButton.Content = "✓  تم النسخ";
+            CopyButton.Content = Localization.Get("Gen_Copied");
             var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
-            timer.Tick += (_, _) => { CopyButton.Content = "📋  نسخ"; timer.Stop(); };
+            timer.Tick += (_, _) => { CopyButton.Content = Localization.Get("Gen_Copy"); timer.Stop(); };
             timer.Start();
         }
         catch
         {
-            MessageBox.Show("تعذّر النسخ إلى الحافظة.", "خطأ", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(Localization.Get("Common_ClipboardFailed"), Localization.Get("Common_Error"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -127,7 +127,7 @@ public partial class GeneratorView : UserControl
         {
             _session.Data.Passwords.Add(dialog.Entry);
             await _session.SaveAsync();
-            NoticeText.Text = $"✓ تم حفظ كلمة المرور للموقع «{dialog.Entry.Title}» في الخزنة.";
+            NoticeText.Text = string.Format(Localization.Get("Gen_Saved"), dialog.Entry.Title);
             NoticeText.Foreground = (Brush)FindResource("SuccessBrush");
         }
     }

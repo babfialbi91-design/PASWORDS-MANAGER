@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Threading;
 using PasswordManager.Models;
 using PasswordManager.Services;
 
@@ -15,6 +14,7 @@ public partial class PasswordsView : UserControl
     public PasswordsView()
     {
         InitializeComponent();
+        Localization.LanguageChanged += Refresh;
     }
 
     public void Attach(VaultSession session)
@@ -51,7 +51,7 @@ public partial class PasswordsView : UserControl
         if (selected is not null)
             EntriesList.SelectedItem = entries.FirstOrDefault(e => e.Id == selected.Id);
 
-        CountText.Text = $"المحفوظ: {_session.Data.Passwords.Count} | المعروض: {entries.Count}";
+        CountText.Text = string.Format(Localization.Get("Pass_Count"), _session.Data.Passwords.Count, entries.Count);
         EmptyText.Visibility = entries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
         if (EntriesList.SelectedItem is null)
@@ -67,15 +67,17 @@ public partial class PasswordsView : UserControl
 
         DetailsTitle.Text = entry.Title;
         var parts = new List<string>();
-        if (!string.IsNullOrEmpty(entry.Username)) parts.Add($"المستخدم: {entry.Username}");
-        if (!string.IsNullOrEmpty(entry.Website)) parts.Add($"الموقع: {entry.Website}");
-        if (!string.IsNullOrEmpty(entry.Category)) parts.Add($"التصنيف: {entry.Category}");
-        if (!string.IsNullOrEmpty(entry.Notes)) parts.Add($"ملاحظات: {entry.Notes}");
-        parts.Add($"القوة: {PasswordQuality.StrengthLabel(entry.Password)}");
+        if (!string.IsNullOrEmpty(entry.Username)) parts.Add(string.Format(Localization.Get("Pass_User"), entry.Username));
+        if (!string.IsNullOrEmpty(entry.Website)) parts.Add(string.Format(Localization.Get("Pass_Website"), entry.Website));
+        if (!string.IsNullOrEmpty(entry.Category)) parts.Add(string.Format(Localization.Get("Pass_Category"), entry.Category));
+        if (!string.IsNullOrEmpty(entry.Notes)) parts.Add(string.Format(Localization.Get("Pass_Notes"), entry.Notes));
+        parts.Add(string.Format(Localization.Get("Pass_Strength"), Localization.Strength(PasswordQuality.Strength(entry.Password))));
         DetailsMeta.Text = string.Join("   •   ", parts);
 
         PasswordDisplay.Text = _revealed ? entry.Password : new string('•', Math.Clamp(entry.Password.Length, 1, 24));
-        ToggleRevealButton.Content = _revealed ? "🙈 إخفاء" : "👁️ إظهار";
+        ToggleRevealButton.Content = _revealed
+            ? Localization.Get("Pass_BtnHide")
+            : Localization.Get("Pass_BtnShow");
         DetailsPanel.Visibility = Visibility.Visible;
     }
 
@@ -139,8 +141,8 @@ public partial class PasswordsView : UserControl
         if (_session is null || EntriesList.SelectedItem is not PasswordEntry entry) return;
 
         var result = MessageBox.Show(
-            $"هل تريد حذف «{entry.Title}» نهائياً؟",
-            "تأكيد الحذف",
+            string.Format(Localization.Get("Pass_DeleteConfirm"), entry.Title),
+            Localization.Get("Common_ConfirmDelete"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
 
@@ -154,13 +156,13 @@ public partial class PasswordsView : UserControl
     private void CopyPassword_Click(object sender, RoutedEventArgs e)
     {
         if (EntriesList.SelectedItem is PasswordEntry entry)
-            CopyText(entry.Password, "تم نسخ كلمة المرور إلى الحافظة.");
+            CopyText(entry.Password, Localization.Get("Pass_CopiedPassword"));
     }
 
     private void CopyUsername_Click(object sender, RoutedEventArgs e)
     {
         if (EntriesList.SelectedItem is PasswordEntry entry)
-            CopyText(entry.Username, "تم نسخ اسم المستخدم إلى الحافظة.");
+            CopyText(entry.Username, Localization.Get("Pass_CopiedUsername"));
     }
 
     private void ToggleReveal_Click(object sender, RoutedEventArgs e)
@@ -179,7 +181,8 @@ public partial class PasswordsView : UserControl
         }
         catch
         {
-            MessageBox.Show("تعذّر النسخ إلى الحافظة.", "خطأ", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(Localization.Get("Common_ClipboardFailed"), Localization.Get("Common_Error"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 }

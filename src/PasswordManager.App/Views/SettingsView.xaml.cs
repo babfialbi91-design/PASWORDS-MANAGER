@@ -11,18 +11,31 @@ public partial class SettingsView : UserControl
 {
     private VaultSession? _session;
     private string? _updateUrl;
+    private string? _statusKey;
+    private object?[]? _statusArgs;
 
     public SettingsView()
     {
         InitializeComponent();
+
+        LanguageBox.Items.Add("العربية");
+        LanguageBox.Items.Add("English");
+        LanguageBox.SelectedIndex = Localization.Instance.IsRtl ? 0 : 1;
+
+        Localization.LanguageChanged += ApplyLanguage;
+    }
+
+    private void LanguageBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (LanguageBox.SelectedIndex < 0) return;
+        Localization.Instance.Language = LanguageBox.SelectedIndex == 0 ? PasswordManager.App.Language.Arabic : PasswordManager.App.Language.English;
     }
 
     public void Attach(VaultSession session)
     {
         _session = session;
         VaultPathText.Text = session.VaultPath;
-        CurrentVersionText.Text = $"الإصدار الحالي: {UpdateService.CurrentVersion}";
-        AboutVersionText.Text = $"مدير كلمات المرور — الإصدار {UpdateService.CurrentVersion}";
+        ApplyLanguage();
     }
 
     public void Detach()
@@ -34,6 +47,14 @@ public partial class SettingsView : UserControl
     {
         if (_session is not null)
             VaultPathText.Text = _session.VaultPath;
+    }
+
+    private void ApplyLanguage()
+    {
+        CurrentVersionText.Text = string.Format(Localization.Get("Settings_CurrentVersion"), UpdateService.CurrentVersion);
+        AboutVersionText.Text = string.Format(Localization.Get("Settings_About"), UpdateService.CurrentVersion);
+        if (_statusKey is not null)
+            RenderUpdateStatus(_statusKey, _statusArgs);
     }
 
     private async void ChangePassword_Click(object sender, RoutedEventArgs e)
@@ -53,18 +74,18 @@ public partial class SettingsView : UserControl
         }
         catch (CryptographicException)
         {
-            ShowChangeError("كلمة المرور الحالية غير صحيحة.");
+            ShowChangeError(Localization.Get("Settings_ChangeErrCurrent"));
             return;
         }
 
         if (newPw.Length < 8)
         {
-            ShowChangeError("كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل.");
+            ShowChangeError(Localization.Get("Settings_ChangeErrTooShort"));
             return;
         }
         if (newPw != confirm)
         {
-            ShowChangeError("كلمتا المرور الجديدتان غير متطابقتين.");
+            ShowChangeError(Localization.Get("Settings_ChangeErrMismatch"));
             return;
         }
 
@@ -75,7 +96,7 @@ public partial class SettingsView : UserControl
         NewPasswordBox.Clear();
         ConfirmPasswordBox.Clear();
 
-        ChangeMessage.Text = "✓ تم تغيير كلمة المرور الرئيسية بنجاح.";
+        ChangeMessage.Text = Localization.Get("Settings_ChangeOk");
         ChangeMessage.Foreground = (Brush)FindResource("SuccessBrush");
         ChangeMessage.Visibility = Visibility.Visible;
     }
@@ -99,40 +120,50 @@ public partial class SettingsView : UserControl
         }
     }
 
+    private void RenderUpdateStatus(string key, object?[]? args)
+    {
+        _statusKey = key;
+        _statusArgs = args;
+        UpdateStatusText.Text = args is { Length: > 0 } ? string.Format(Localization.Get(key), args) : Localization.Get(key);
+
+        UpdateStatusText.Foreground = key switch
+        {
+            "Settings_NewAvailable" => (Brush)FindResource("WarningBrush"),
+            "Settings_UpToDate" => (Brush)FindResource("SuccessBrush"),
+            "Settings_ConnFailed" => (Brush)FindResource("DangerBrush"),
+            _ => (Brush)FindResource("TextMutedBrush")
+        };
+    }
+
     private async void CheckUpdates_Click(object sender, RoutedEventArgs e)
     {
-        UpdateStatusText.Text = "جاري التحقق من التحديثات...";
-        UpdateStatusText.Foreground = (Brush)FindResource("TextMutedBrush");
+        RenderUpdateStatus("Settings_Checking", null);
         DownloadUpdateButton.Visibility = Visibility.Collapsed;
 
         var info = await Task.Run(UpdateService.CheckLatestAsync);
 
         if (info is null)
         {
-            UpdateStatusText.Text = "تعذّر الاتصال بالخادم. تأكد من اتصالك بالإنترنت.";
-            UpdateStatusText.Foreground = (Brush)FindResource("DangerBrush");
+            RenderUpdateStatus("Settings_ConnFailed", null);
             return;
         }
 
         if (UpdateService.IsNewer(info.Version, UpdateService.CurrentVersion))
         {
             _updateUrl = string.IsNullOrEmpty(info.DownloadUrl) ? info.ReleaseUrl : info.DownloadUrl;
-            UpdateStatusText.Text = $"يتوفر تحديث جديد: الإصدار {info.Version}";
-            UpdateStatusText.Foreground = (Brush)FindResource("WarningBrush");
+            RenderUpdateStatus("Settings_NewAvailable", new object[] { info.Version });
             DownloadUpdateButton.Visibility = Visibility.Visible;
         }
         else
         {
-            UpdateStatusText.Text = "أنت على أحدث إصدار ✅";
-            UpdateStatusText.Foreground = (Brush)FindResource("SuccessBrush");
+            RenderUpdateStatus("Settings_UpToDate", null);
         }
     }
 
     public void SetUpdateAvailable(string version, string url)
     {
         _updateUrl = url;
-        UpdateStatusText.Text = $"يتوفر تحديث جديد: الإصدار {version}";
-        UpdateStatusText.Foreground = (Brush)FindResource("WarningBrush");
+        RenderUpdateStatus("Settings_NewAvailable", new object[] { version });
         DownloadUpdateButton.Visibility = Visibility.Visible;
     }
 
@@ -150,27 +181,27 @@ public partial class SettingsView : UserControl
         {
             var exe = Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
             var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-            var shortcutPath = System.IO.Path.Combine(desktop, "مدير كلمات المرور.lnk");
+            var shortcutPath = System.IO.Path.Combine(desktop, Localization.Instance.IsRtl ? "مدير كلمات المرور.lnk" : "Password Manager.lnk");
 
             var shellType = Type.GetTypeFromProgID("WScript.Shell");
             if (shellType is null)
-                throw new InvalidOperationException("WScript.Shell غير متوفر.");
+                throw new InvalidOperationException("WScript.Shell");
 
             dynamic shell = Activator.CreateInstance(shellType)!;
             dynamic shortcut = shell.CreateShortcut(shortcutPath);
             shortcut.TargetPath = exe;
             shortcut.WorkingDirectory = System.IO.Path.GetDirectoryName(exe) ?? string.Empty;
             shortcut.IconLocation = $"{exe},0";
-            shortcut.Description = "مدير كلمات المرور";
+            shortcut.Description = Localization.Get("App_Title");
             shortcut.Save();
 
-            ShortcutMessage.Text = "✓ تم إنشاء الاختصار على سطح المكتب.";
+            ShortcutMessage.Text = Localization.Get("Settings_ShortcutOk");
             ShortcutMessage.Foreground = (Brush)FindResource("SuccessBrush");
             ShortcutMessage.Visibility = Visibility.Visible;
         }
         catch (Exception ex)
         {
-            ShortcutMessage.Text = $"✗ فشل الإنشاء: {ex.Message}";
+            ShortcutMessage.Text = string.Format(Localization.Get("Settings_ShortcutFail"), ex.Message);
             ShortcutMessage.Foreground = (Brush)FindResource("DangerBrush");
             ShortcutMessage.Visibility = Visibility.Visible;
         }
@@ -181,8 +212,8 @@ public partial class SettingsView : UserControl
         if (_session is null) return;
 
         var result = MessageBox.Show(
-            "تحذير: سيتم حذف كل كلمات المرور وحسابات TOTP نهائياً ولا يمكن استرجاعها.\nهل أنت متأكد تماماً؟",
-            "إعادة تعيين الخزنة",
+            Localization.Get("Settings_ResetConfirmMsg"),
+            Localization.Get("Login_ResetConfirmTitle"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
 

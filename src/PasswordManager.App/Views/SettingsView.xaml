@@ -1,33 +1,45 @@
 <UserControl x:Class="PasswordManager.App.Views.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FlowDirection="RightToLeft">
+             xmlns:loc="clr-namespace:PasswordManager.App">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="28,22,28,24">
 
-            <TextBlock Text="⚙️  الإعدادات" FontSize="24" FontWeight="Bold"/>
-            <TextBlock Text="إدارة الأمان وملف الخزنة"
+            <TextBlock Text="{Binding [Settings_Title], Source={x:Static loc:Localization.Instance}}" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="{Binding [Settings_Sub], Source={x:Static loc:Localization.Instance}}"
                        FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,18"/>
 
-            <!-- تغيير كلمة المرور -->
+            <!-- اللغة -->
             <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12"
                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="22,18">
                 <StackPanel>
-                    <TextBlock Text="🔁  تغيير كلمة المرور الرئيسية" FontSize="16" FontWeight="Bold" Margin="0,0,0,14"/>
+                    <TextBlock Text="{Binding [Settings_LangTitle], Source={x:Static loc:Localization.Instance}}" FontSize="16" FontWeight="Bold" Margin="0,0,0,6"/>
+                    <TextBlock Text="{Binding [Settings_LangLabel], Source={x:Static loc:Localization.Instance}}"
+                               FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,10"/>
+                    <ComboBox x:Name="LanguageBox" Width="180" HorizontalAlignment="Left"
+                              SelectionChanged="LanguageBox_SelectionChanged"/>
+                </StackPanel>
+            </Border>
 
-                    <TextBlock Text="كلمة المرور الحالية" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
+            <!-- تغيير كلمة المرور -->
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="22,18" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="{Binding [Settings_ChangeTitle], Source={x:Static loc:Localization.Instance}}" FontSize="16" FontWeight="Bold" Margin="0,0,0,14"/>
+
+                    <TextBlock Text="{Binding [Settings_CurrentPw], Source={x:Static loc:Localization.Instance}}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
                     <PasswordBox x:Name="CurrentPasswordBox" Padding="10,8"/>
 
-                    <TextBlock Text="كلمة المرور الجديدة" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,12,0,5"/>
+                    <TextBlock Text="{Binding [Settings_NewPw], Source={x:Static loc:Localization.Instance}}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,12,0,5"/>
                     <PasswordBox x:Name="NewPasswordBox" Padding="10,8"/>
 
-                    <TextBlock Text="تأكيد كلمة المرور الجديدة" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,12,0,5"/>
+                    <TextBlock Text="{Binding [Settings_ConfirmPw], Source={x:Static loc:Localization.Instance}}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,12,0,5"/>
                     <PasswordBox x:Name="ConfirmPasswordBox" Padding="10,8"/>
 
                     <TextBlock x:Name="ChangeMessage" FontSize="12" Foreground="{StaticResource SuccessBrush}" Visibility="Collapsed" Margin="0,12,0,0"/>
 
-                    <Button Content="تغيير كلمة المرور" Style="{StaticResource PrimaryButton}"
+                    <Button Content="{Binding [Settings_ChangeBtn], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource PrimaryButton}"
                             HorizontalAlignment="Left" MinWidth="160" Margin="0,16,0,0" Click="ChangePassword_Click"/>
                 </StackPanel>
             </Border>
@@ -36,7 +48,7 @@
             <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12"
                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="22,18" Margin="0,16,0,0">
                 <StackPanel>
-                    <TextBlock Text="🗄️  ملف الخزنة" FontSize="16" FontWeight="Bold" Margin="0,0,0,12"/>
+                    <TextBlock Text="{Binding [Settings_VaultTitle], Source={x:Static loc:Localization.Instance}}" FontSize="16" FontWeight="Bold" Margin="0,0,0,12"/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -47,15 +59,15 @@
                             <TextBlock x:Name="VaultPathText" TextWrapping="Wrap" FontSize="12"
                                        Foreground="{StaticResource TextMutedBrush}" FontFamily="Consolas"/>
                         </Border>
-                        <Button Grid.Column="1" Content="📋 نسخ المسار" Style="{StaticResource GhostButton}"
+                        <Button Grid.Column="1" Content="{Binding [Settings_CopyPath], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource GhostButton}"
                                 Margin="10,0,0,0" Click="CopyPath_Click"/>
                     </Grid>
 
                     <Separator Margin="0,16" Background="{StaticResource BorderBrush}"/>
 
-                    <TextBlock Text="إعادة تعيين الخزنة — يحذف كل كلمات المرور وحسابات TOTP نهائياً"
+                    <TextBlock Text="{Binding [Settings_ResetDesc], Source={x:Static loc:Localization.Instance}}"
                                FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
-                    <Button Content="🗑️  إعادة تعيين الخزنة" Style="{StaticResource DangerButton}"
+                    <Button Content="{Binding [Settings_ResetBtn], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource DangerButton}"
                             HorizontalAlignment="Left" MinWidth="200" Margin="0,12,0,0" Click="ResetVault_Click"/>
                 </StackPanel>
             </Border>
@@ -64,7 +76,7 @@
             <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12"
                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="22,18" Margin="0,16,0,0">
                 <StackPanel>
-                    <TextBlock Text="🔄  التحديثات" FontSize="16" FontWeight="Bold" Margin="0,0,0,12"/>
+                    <TextBlock Text="{Binding [Settings_UpdateTitle], Source={x:Static loc:Localization.Instance}}" FontSize="16" FontWeight="Bold" Margin="0,0,0,12"/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -77,14 +89,14 @@
                                        TextWrapping="Wrap" Margin="0,6,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button Content="🔄  التحقق من التحديثات" Style="{StaticResource GhostButton}"
+                            <Button Content="{Binding [Settings_CheckBtn], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource GhostButton}"
                                     Margin="10,0,0,0" Click="CheckUpdates_Click"/>
-                            <Button x:Name="DownloadUpdateButton" Content="⬇️  تحميل التحديث" Style="{StaticResource PrimaryButton}"
+                            <Button x:Name="DownloadUpdateButton" Content="{Binding [Settings_DownloadBtn], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource PrimaryButton}"
                                     Margin="10,0,0,0" Visibility="Collapsed" Click="DownloadUpdate_Click"/>
                         </StackPanel>
                     </Grid>
 
-                    <TextBlock Text="مشروع مفتوح المصدر — يتم جلب آخر إصدار تلقائياً من GitHub عند كل فتح."
+                    <TextBlock Text="{Binding [Settings_UpdateNote], Source={x:Static loc:Localization.Instance}}"
                                FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,12,0,0"/>
                 </StackPanel>
             </Border>
@@ -93,11 +105,11 @@
             <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12"
                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="22,18" Margin="0,16,0,0">
                 <StackPanel>
-                    <TextBlock Text="🖥️  الوصول السريع" FontSize="16" FontWeight="Bold" Margin="0,0,0,12"/>
-                    <TextBlock Text="أنشئ اختصاراً للتطبيق على سطح المكتب ليسهل الوصول إليه."
+                    <TextBlock Text="{Binding [Settings_AccessTitle], Source={x:Static loc:Localization.Instance}}" FontSize="16" FontWeight="Bold" Margin="0,0,0,12"/>
+                    <TextBlock Text="{Binding [Settings_AccessDesc], Source={x:Static loc:Localization.Instance}}"
                                FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
                     <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                        <Button Content="📌  إنشاء اختصار على سطح المكتب" Style="{StaticResource GhostButton}"
+                        <Button Content="{Binding [Settings_ShortcutBtn], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource GhostButton}"
                                 HorizontalAlignment="Left" Click="CreateShortcut_Click"/>
                         <TextBlock x:Name="ShortcutMessage" FontSize="12" Foreground="{StaticResource SuccessBrush}"
                                    VerticalAlignment="Center" Margin="14,0,0,0" Visibility="Collapsed"/>
@@ -109,9 +121,9 @@
             <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12"
                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="22,18" Margin="0,16,0,0">
                 <StackPanel>
-                    <TextBlock Text="ℹ️  حول" FontSize="16" FontWeight="Bold" Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding [Settings_AboutTitle], Source={x:Static loc:Localization.Instance}}" FontSize="16" FontWeight="Bold" Margin="0,0,0,8"/>
                     <TextBlock x:Name="AboutVersionText" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
-                    <TextBlock Text="تشفير AES-256-GCM مع مفتاح PBKDF2-SHA256 (600,000 جولة) — جميع البيانات محلية على جهازك."
+                    <TextBlock Text="{Binding [Settings_AboutCrypto], Source={x:Static loc:Localization.Instance}}"
                                FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0"/>
                 </StackPanel>
             </Border>

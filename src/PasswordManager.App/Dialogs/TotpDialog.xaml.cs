@@ -14,6 +14,7 @@ public partial class TotpDialog : Window
     public TotpDialog()
     {
         InitializeComponent();
+        FlowDirection = Localization.Instance.IsRtl ? System.Windows.FlowDirection.RightToLeft : System.Windows.FlowDirection.LeftToRight;
         Loaded += (_, _) => SecretInput.Focus();
     }
 
@@ -69,7 +70,7 @@ public partial class TotpDialog : Window
         }
         catch (Exception ex)
         {
-            SetError($"المفتاح غير صالح: {ex.Message}");
+            SetError(string.Format(Localization.Get("TotpDialog_ErrKey"), ex.Message));
         }
     }
 
@@ -80,7 +81,7 @@ public partial class TotpDialog : Window
 
         if (string.IsNullOrEmpty(input))
         {
-            message = "أدخل المفتاح السري أو رابط otpauth.";
+            message = Localization.Get("TotpDialog_ErrSecret");
             return null;
         }
 
@@ -88,7 +89,7 @@ public partial class TotpDialog : Window
 
         if (parsed is null)
         {
-            message = "تعذّر قراءة المفتاح. تأكد من صحته (أحرف A-Z و2-7 فقط).";
+            message = Localization.Get("TotpDialog_ErrInvalidInput");
             return null;
         }
 
@@ -96,7 +97,7 @@ public partial class TotpDialog : Window
         {
             if (string.IsNullOrWhiteSpace(NameInput.Text))
             {
-                message = "أدخل اسم الحساب.";
+                message = Localization.Get("TotpDialog_ErrName");
                 return null;
             }
 
@@ -124,7 +125,7 @@ public partial class TotpDialog : Window
         }
         catch (Exception ex)
         {
-            SetError($"المفتاح غير صالح: {ex.Message}");
+            SetError(string.Format(Localization.Get("TotpDialog_ErrKey"), ex.Message));
             return;
         }
 

@@ -24,6 +24,7 @@ public partial class TotpView : UserControl
         InitializeComponent();
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _timer.Tick += (_, _) => Tick();
+        Localization.LanguageChanged += Refresh;
     }
 
     public void Attach(VaultSession session)
@@ -129,7 +130,7 @@ public partial class TotpView : UserControl
 
         var copyButton = new Button
         {
-            Content = "📋 نسخ",
+            Content = Localization.Get("Common_Copy"),
             Style = (Style)FindResource("SecondaryButton"),
             Padding = new Thickness(12, 6, 12, 6),
             Margin = new Thickness(0, 0, 8, 0)
@@ -138,7 +139,7 @@ public partial class TotpView : UserControl
 
         var deleteButton = new Button
         {
-            Content = "🗑️ حذف",
+            Content = Localization.Get("Common_Delete"),
             Style = (Style)FindResource("DangerButton"),
             Padding = new Thickness(12, 6, 12, 6)
         };
@@ -175,14 +176,14 @@ public partial class TotpView : UserControl
 
                 card.Code.Text = code;
                 card.Bar.Value = remaining;
-                card.Remaining.Text = $"يتجدد بعد {remaining} ثانية";
+                card.Remaining.Text = string.Format(Localization.Get("Totp_Remaining"), remaining);
                 var urgent = remaining <= 5;
                 card.Bar.Foreground = urgent ? danger : success;
                 card.Remaining.Foreground = urgent ? danger : muted;
             }
             catch
             {
-                card.Code.Text = "مفتاح غير صالح";
+                card.Code.Text = Localization.Get("Totp_InvalidKey");
                 card.Bar.Value = 0;
                 card.Remaining.Text = string.Empty;
             }
@@ -196,11 +197,11 @@ public partial class TotpView : UserControl
             var code = TotpService.ComputeCode(account, DateTimeOffset.Now);
             Clipboard.SetText(code);
             var win = Window.GetWindow(this) as MainWindow;
-            win?.Notify($"تم نسخ رمز «{account.Name}» إلى الحافظة.");
+            win?.Notify(string.Format(Localization.Get("Totp_Copied"), account.Name));
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "خطأ", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(ex.Message, Localization.Get("Common_Error"), MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -209,8 +210,8 @@ public partial class TotpView : UserControl
         if (_session is null) return;
 
         var result = MessageBox.Show(
-            $"حذف حساب «{account.Name}» نهائياً؟",
-            "تأكيد الحذف",
+            string.Format(Localization.Get("Totp_DeleteConfirm"), account.Name),
+            Localization.Get("Common_ConfirmDelete"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
 
