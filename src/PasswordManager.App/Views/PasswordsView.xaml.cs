@@ -95,6 +95,39 @@ public partial class PasswordsView : UserControl
             _ = EditEntryAsync(entry);
     }
 
+    private void EntriesList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (ItemsControl.ContainerFromElement(EntriesList, e.OriginalSource as DependencyObject) is ListViewItem { DataContext: PasswordEntry entry })
+            EntriesList.SelectedItem = entry;
+    }
+
+    private void ContextCopyPassword_Click(object sender, RoutedEventArgs e) => CopyPassword_Click(sender, e);
+
+    private void ContextCopyUsername_Click(object sender, RoutedEventArgs e) => CopyUsername_Click(sender, e);
+
+    private async void ContextEdit_Click(object sender, RoutedEventArgs e)
+    {
+        if (EntriesList.SelectedItem is PasswordEntry entry)
+            await EditEntryAsync(entry);
+    }
+
+    private async void ContextDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if (_session is null || EntriesList.SelectedItem is not PasswordEntry entry) return;
+
+        var result = MessageBox.Show(
+            string.Format(Localization.Get("Pass_DeleteConfirm"), entry.Title),
+            Localization.Get("Common_ConfirmDelete"),
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (result != MessageBoxResult.Yes) return;
+
+        _session.Data.Passwords.Remove(entry);
+        await _session.SaveAsync();
+        Refresh();
+    }
+
     private async void AddButton_Click(object sender, RoutedEventArgs e)
     {
         if (_session is null) return;
@@ -173,16 +206,14 @@ public partial class PasswordsView : UserControl
 
     private void CopyText(string text, string successMessage)
     {
-        try
-        {
-            Clipboard.SetText(text);
-            var win = Window.GetWindow(this) as MainWindow;
-            win?.Notify(successMessage);
-        }
-        catch
+        if (!SecureClipboard.SetText(text))
         {
             MessageBox.Show(Localization.Get("Common_ClipboardFailed"), Localization.Get("Common_Error"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
         }
+
+        var win = Window.GetWindow(this) as MainWindow;
+        win?.Notify(successMessage);
     }
 }

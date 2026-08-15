@@ -12,7 +12,9 @@ public static class UpdateFlow
 {
     public static void Start(Window owner, string version, string downloadUrl)
     {
-        if (string.IsNullOrEmpty(downloadUrl) || string.IsNullOrEmpty(version))
+        if (string.IsNullOrEmpty(downloadUrl) || !UpdateService.IsTrustedDownloadUrl(downloadUrl))
+            return;
+        if (!UpdateService.IsValidVersion(version))
             return;
 
         var installerPath = UpdatePaths.InstallerPath(version);

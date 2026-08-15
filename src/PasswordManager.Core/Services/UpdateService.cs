@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace PasswordManager.Services;
 
@@ -40,6 +41,25 @@ public static class UpdateService
     private const string Repo = "babfialbi91-design/PAS-MAN-RELEASES";
     private static readonly HttpClient Http = CreateClient();
     private static readonly HttpClient DownloadClient = CreateDownloadClient();
+
+    /// <summary>
+    /// يسمح فقط بتنزيل المثبّت من GitHub — يمنع أي عنوان آخر من تنفيذ تحميلات تعسفية.
+    /// </summary>
+    public static bool IsTrustedDownloadUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return false;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return false;
+        if (!string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)) return false;
+        return uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase) ||
+               uri.Host.EndsWith(".github.com", StringComparison.OrdinalIgnoreCase) ||
+               uri.Host.Equals("objects.githubusercontent.com", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// يتحقق أن الإصدار رقم فقط (مثال: 1.2.0) — يستخدم داخل اسم ملف المثبّت، لذا يمنع أي محاولة حقن مسار.
+    /// </summary>
+    public static bool IsValidVersion(string? version)
+        => !string.IsNullOrWhiteSpace(version) && Regex.IsMatch(version, @"^\d+(\.\d+){1,3}$");
 
     public static string CurrentVersion
     {
@@ -125,6 +145,9 @@ public static class UpdateService
     public static async Task DownloadAsync(string url, string destPath, IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
+        if (!IsTrustedDownloadUrl(url))
+            throw new InvalidOperationException("Untrusted download URL.");
+
         using var response = await DownloadClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
 

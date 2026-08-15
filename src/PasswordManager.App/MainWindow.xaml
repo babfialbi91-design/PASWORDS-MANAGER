@@ -98,5 +98,11 @@
                 </Grid>
             </Grid>
         </Grid>
+
+        <!-- وميض فتح الخزنة -->
+        <Grid x:Name="UnlockOverlay" Visibility="Collapsed" Background="#000000" IsHitTestVisible="False">
+            <TextBlock x:Name="UnlockBurst" Text="✳" FontSize="88" Foreground="White"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0"/>
+        </Grid>
     </Grid>
 </Window>

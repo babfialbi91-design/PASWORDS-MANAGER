@@ -79,15 +79,8 @@ public partial class EntryDialog : Window
     private void CopyGeneratedButton_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrEmpty(PasswordInput.Text)) return;
-        try
-        {
-            Clipboard.SetText(PasswordInput.Text);
+        if (SecureClipboard.SetText(PasswordInput.Text))
             CopyGeneratedButton.Content = Localization.Get("Common_Copied");
-        }
-        catch
-        {
-            // تجاهل فشل النسخ
-        }
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)

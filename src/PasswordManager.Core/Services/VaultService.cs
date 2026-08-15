@@ -17,6 +17,8 @@ public sealed class VaultService
 
     private readonly string _vaultPath;
 
+    private const int MaxBackups = 5;
+
     public VaultService(string vaultPath)
     {
         _vaultPath = vaultPath;
@@ -100,5 +102,38 @@ public sealed class VaultService
 
         await using var stream = File.Create(_vaultPath);
         await JsonSerializer.SerializeAsync(stream, file, JsonOptions);
+
+        CreateBackup();
+    }
+
+    /// <summary>
+    /// نسخ احتياطي دوّار للملف المشفّر (آخر 5 نسخ) قبل أي حفظ جديد — نسخ من الملف المُشفّر فقط.
+    /// </summary>
+    private void CreateBackup()
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(_vaultPath);
+            if (string.IsNullOrEmpty(dir) || !File.Exists(_vaultPath)) return;
+
+            var baseName = Path.Combine(dir, Path.GetFileNameWithoutExtension(_vaultPath) + ".backup");
+
+            var oldest = baseName + "." + MaxBackups;
+            if (File.Exists(oldest))
+                File.Delete(oldest);
+
+            for (var i = MaxBackups - 1; i >= 1; i--)
+            {
+                var src = baseName + "." + i;
+                if (File.Exists(src))
+                    File.Move(src, baseName + "." + (i + 1));
+            }
+
+            File.Copy(_vaultPath, baseName + ".1", overwrite: true);
+        }
+        catch
+        {
+            // النسخ الاحتياطي ليس حرجاً — لا نمنع الحفظ الأساسي.
+        }
     }
 }

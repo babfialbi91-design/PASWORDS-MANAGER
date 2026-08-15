@@ -29,6 +29,9 @@ public partial class LoginView : UserControl
 
     public event EventHandler? Unlocked;
 
+    private int _failedAttempts;
+    private DateTime _blockUntil = DateTime.MinValue;
+
     public LoginView()
     {
         InitializeComponent();
@@ -188,6 +191,13 @@ public partial class LoginView : UserControl
     {
         if (Vault is null) return;
 
+        if (DateTime.UtcNow < _blockUntil)
+        {
+            SetError(string.Format(Localization.Get("Login_ErrTooMany"),
+                (int)Math.Ceiling((_blockUntil - DateTime.UtcNow).TotalSeconds)));
+            return;
+        }
+
         SetError(string.Empty);
         var password = CurrentPassword();
 
@@ -225,11 +235,23 @@ public partial class LoginView : UserControl
                 MasterPassword = password;
             }
 
+            _failedAttempts = 0;
+            _blockUntil = DateTime.MinValue;
             Unlocked?.Invoke(this, EventArgs.Empty);
         }
         catch (CryptographicException)
         {
-            SetError(Localization.Get("Login_ErrWrongPassword"));
+            _failedAttempts++;
+            if (_failedAttempts >= 5)
+            {
+                _failedAttempts = 0;
+                _blockUntil = DateTime.UtcNow.AddSeconds(30);
+                SetError(string.Format(Localization.Get("Login_ErrTooMany"), 30));
+            }
+            else
+            {
+                SetError(Localization.Get("Login_ErrWrongPassword"));
+            }
         }
         catch (Exception ex)
         {

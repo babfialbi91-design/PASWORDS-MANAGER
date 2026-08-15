@@ -97,19 +97,17 @@ public partial class GeneratorView : UserControl
     {
         if (string.IsNullOrEmpty(_current)) return;
 
-        try
-        {
-            Clipboard.SetText(_current);
-            CopyButton.Content = Localization.Get("Gen_Copied");
-            var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
-            timer.Tick += (_, _) => { CopyButton.Content = Localization.Get("Gen_Copy"); timer.Stop(); };
-            timer.Start();
-        }
-        catch
+        if (!SecureClipboard.SetText(_current))
         {
             MessageBox.Show(Localization.Get("Common_ClipboardFailed"), Localization.Get("Common_Error"),
                 MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
         }
+
+        CopyButton.Content = Localization.Get("Gen_Copied");
+        var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+        timer.Tick += (_, _) => { CopyButton.Content = Localization.Get("Gen_Copy"); timer.Stop(); };
+        timer.Start();
     }
 
     private async void SaveButton_Click(object sender, RoutedEventArgs e)

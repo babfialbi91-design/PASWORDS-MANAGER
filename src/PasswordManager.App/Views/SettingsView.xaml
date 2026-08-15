@@ -22,6 +22,18 @@
                 </StackPanel>
             </Border>
 
+            <!-- الأمان -->
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="22,18" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="{Binding [Settings_SecurityTitle], Source={x:Static loc:Localization.Instance}}" FontSize="16" FontWeight="Bold" Margin="0,0,0,6"/>
+                    <TextBlock Text="{Binding [Settings_AutoLockLabel], Source={x:Static loc:Localization.Instance}}"
+                               FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,10"/>
+                    <ComboBox x:Name="AutoLockBox" Width="200" HorizontalAlignment="Left"
+                              SelectionChanged="AutoLockBox_SelectionChanged"/>
+                </StackPanel>
+            </Border>
+
             <!-- تغيير كلمة المرور -->
             <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12"
                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="22,18" Margin="0,16,0,0">
@@ -125,6 +137,9 @@
                     <TextBlock x:Name="AboutVersionText" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
                     <TextBlock Text="{Binding [Settings_AboutCrypto], Source={x:Static loc:Localization.Instance}}"
                                FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                    <TextBlock Text="{Binding [Settings_AboutSignature], Source={x:Static loc:Localization.Instance}}"
+                               FontSize="15" FontFamily="Segoe Script" FontWeight="SemiBold"
+                               Foreground="{StaticResource AccentBrush}" Margin="0,12,0,0"/>
                 </StackPanel>
             </Border>
         </StackPanel>

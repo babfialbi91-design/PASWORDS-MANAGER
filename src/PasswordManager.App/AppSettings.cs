@@ -7,6 +7,8 @@ public sealed class AppSettings
 {
     public Language Language { get; set; } = Language.Arabic;
 
+    public int AutoLockMinutes { get; set; } = 5;
+
     private static string SettingsPath
         => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PasswordManager", "settings.json");
 

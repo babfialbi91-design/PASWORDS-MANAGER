@@ -1,5 +1,5 @@
 ﻿#define MyAppName "مدير كلمات المرور"
-#define MyAppVersion "1.2.0"
+#define MyAppVersion "1.3.0"
 #define MyAppPublisher "babfialbi91-design"
 #define MyAppExeName "PasswordManager.exe"
 #define MyAppId "E22B31B4-D2F9-48DD-A331-1CD94E98FA71"
@@ -28,9 +28,9 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
 ShowLanguageDialog=no
-VersionInfoVersion=1.2.0
+VersionInfoVersion=1.3.0
 VersionInfoProductName={#MyAppName}
-VersionInfoProductVersion=1.2.0
+VersionInfoProductVersion=1.3.0
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=مدير كلمات المرور - Password Manager
 CloseApplications=yes

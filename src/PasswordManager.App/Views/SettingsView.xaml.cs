@@ -15,6 +15,15 @@ public partial class SettingsView : UserControl
     private string? _statusKey;
     private object?[]? _statusArgs;
 
+    private static readonly (int Minutes, string Key)[] AutoLockOptions =
+    {
+        (0, "Settings_AutoLockNever"),
+        (1, "Settings_AutoLock1"),
+        (5, "Settings_AutoLock5"),
+        (10, "Settings_AutoLock10"),
+        (30, "Settings_AutoLock30")
+    };
+
     public SettingsView()
     {
         InitializeComponent();
@@ -23,7 +32,30 @@ public partial class SettingsView : UserControl
         LanguageBox.Items.Add("English");
         LanguageBox.SelectedIndex = Localization.Instance.IsRtl ? 0 : 1;
 
+        PopulateAutoLock();
         Localization.LanguageChanged += ApplyLanguage;
+    }
+
+    private void PopulateAutoLock()
+    {
+        var current = AppSettings.Load().AutoLockMinutes;
+        AutoLockBox.Items.Clear();
+        var index = 0;
+        for (var i = 0; i < AutoLockOptions.Length; i++)
+        {
+            var option = AutoLockOptions[i];
+            AutoLockBox.Items.Add(new ComboBoxItem { Content = Localization.Get(option.Key), Tag = option.Minutes });
+            if (option.Minutes == current) index = i;
+        }
+        AutoLockBox.SelectedIndex = index;
+    }
+
+    private void AutoLockBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (AutoLockBox.SelectedItem is not ComboBoxItem { Tag: int minutes }) return;
+        var settings = AppSettings.Load();
+        settings.AutoLockMinutes = minutes;
+        settings.Save();
     }
 
     private void LanguageBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -54,6 +86,7 @@ public partial class SettingsView : UserControl
     {
         CurrentVersionText.Text = string.Format(Localization.Get("Settings_CurrentVersion"), UpdateService.CurrentVersion);
         AboutVersionText.Text = string.Format(Localization.Get("Settings_About"), UpdateService.CurrentVersion);
+        PopulateAutoLock();
         if (_statusKey is not null)
             RenderUpdateStatus(_statusKey, _statusArgs);
     }
@@ -111,14 +144,7 @@ public partial class SettingsView : UserControl
 
     private void CopyPath_Click(object sender, RoutedEventArgs e)
     {
-        try
-        {
-            Clipboard.SetText(_session?.VaultPath ?? string.Empty);
-        }
-        catch
-        {
-            // تجاهل
-        }
+        SecureClipboard.SetText(_session?.VaultPath ?? string.Empty);
     }
 
     private void RenderUpdateStatus(string key, object?[]? args)

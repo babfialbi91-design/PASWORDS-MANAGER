@@ -192,17 +192,16 @@ public partial class TotpView : UserControl
 
     private void CopyCode(Models.TotpAccount account)
     {
-        try
+        var code = TotpService.ComputeCode(account, DateTimeOffset.Now);
+        if (!SecureClipboard.SetText(code))
         {
-            var code = TotpService.ComputeCode(account, DateTimeOffset.Now);
-            Clipboard.SetText(code);
-            var win = Window.GetWindow(this) as MainWindow;
-            win?.Notify(string.Format(Localization.Get("Totp_Copied"), account.Name));
+            MessageBox.Show(Localization.Get("Common_ClipboardFailed"), Localization.Get("Common_Error"),
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
         }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.Message, Localization.Get("Common_Error"), MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
+
+        var win = Window.GetWindow(this) as MainWindow;
+        win?.Notify(string.Format(Localization.Get("Totp_Copied"), account.Name));
     }
 
     private async Task DeleteAccountAsync(Models.TotpAccount account)

@@ -2,6 +2,9 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Threading;
 using PasswordManager.Models;
 using PasswordManager.Services;
 
@@ -13,6 +16,8 @@ public partial class MainWindow : Window
     private string _activeView = "passwords";
     private string? _updateUrl;
     private string? _updateVersion;
+    private readonly DispatcherTimer _autoLockTimer;
+    private DateTime _lastActivity = DateTime.UtcNow;
 
     public MainWindow()
     {
@@ -31,6 +36,13 @@ public partial class MainWindow : Window
         VaultPathText.Text = path;
 
         Loaded += (_, _) => LoginView.FocusFirst();
+
+        _autoLockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+        _autoLockTimer.Tick += AutoLockTimer_Tick;
+        _autoLockTimer.Start();
+
+        PreviewMouseDown += (_, _) => _lastActivity = DateTime.UtcNow;
+        PreviewKeyDown += (_, _) => _lastActivity = DateTime.UtcNow;
     }
 
     private void OnLanguageChanged()
@@ -70,8 +82,55 @@ public partial class MainWindow : Window
         TotpView.Attach(_session);
         SettingsView.Attach(_session);
 
+        _lastActivity = DateTime.UtcNow;
         ShowView("passwords");
+        PlayUnlockAnimation();
         _ = CheckForUpdatesAsync();
+    }
+
+    private void PlayUnlockAnimation()
+    {
+        UnlockOverlay.Visibility = Visibility.Visible;
+        UnlockOverlay.Opacity = 1;
+
+        var scale = new ScaleTransform(0.4, 0.4, 0.5, 0.5);
+        UnlockBurst.RenderTransform = scale;
+        UnlockBurst.RenderTransformOrigin = new Point(0.5, 0.5);
+        UnlockBurst.Opacity = 1;
+
+        var burstIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220));
+        UnlockBurst.BeginAnimation(OpacityProperty, burstIn);
+        var burstOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(480))
+        {
+            BeginTime = TimeSpan.FromMilliseconds(340)
+        };
+        UnlockBurst.BeginAnimation(OpacityProperty, burstOut);
+
+        var scaleUp = new DoubleAnimation(0.4, 1.15, TimeSpan.FromMilliseconds(520));
+        scale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleUp);
+        scale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleUp);
+
+        var fade = new DoubleAnimation(0.92, 0, TimeSpan.FromMilliseconds(720));
+        UnlockOverlay.BeginAnimation(OpacityProperty, fade);
+        fade.Completed += (_, _) => UnlockOverlay.Visibility = Visibility.Collapsed;
+    }
+
+    private void AutoLockTimer_Tick(object? sender, EventArgs e)
+    {
+        if (_session is null) return;
+
+        var minutes = AppSettings.Load().AutoLockMinutes;
+        if (minutes <= 0) return;
+
+        if (DateTime.UtcNow - _lastActivity >= TimeSpan.FromMinutes(minutes))
+            LockNow();
+    }
+
+    private void LockNow()
+    {
+        SecureClipboard.Clear();
+        _lastActivity = DateTime.UtcNow;
+        LockButton_Click(this, new RoutedEventArgs());
     }
 
     private async Task CheckForUpdatesAsync()
@@ -161,6 +220,7 @@ public partial class MainWindow : Window
 
     private void LockButton_Click(object sender, RoutedEventArgs e)
     {
+        SecureClipboard.Clear();
         _session = null;
         PasswordsView.Detach();
         GeneratorView.Detach();
