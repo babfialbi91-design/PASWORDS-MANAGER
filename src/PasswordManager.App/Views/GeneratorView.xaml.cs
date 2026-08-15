@@ -10,11 +10,16 @@ public partial class GeneratorView : UserControl
 {
     private VaultSession? _session;
     private string _current = string.Empty;
+    private bool _ready;
 
     public GeneratorView()
     {
         InitializeComponent();
-        Loaded += (_, _) => Generate();
+        Loaded += (_, _) =>
+        {
+            _ready = true;
+            Generate();
+        };
     }
 
     public void Attach(VaultSession session)
@@ -45,7 +50,11 @@ public partial class GeneratorView : UserControl
         };
     }
 
-    private void Options_Changed(object sender, RoutedEventArgs e) => Generate();
+    private void Options_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!_ready) return;
+        Generate();
+    }
 
     private void GenerateButton_Click(object sender, RoutedEventArgs e) => Generate();
 

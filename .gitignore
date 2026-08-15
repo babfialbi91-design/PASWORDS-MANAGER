@@ -17,3 +17,6 @@ Desktop.ini
 ## Local vault data (never commit secrets)
 *.dat
 vault.dat
+
+## Release artifacts
+dist/

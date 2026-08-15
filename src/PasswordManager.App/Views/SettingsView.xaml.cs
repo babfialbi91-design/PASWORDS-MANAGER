@@ -1,13 +1,16 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using PasswordManager.Services;
 
 namespace PasswordManager.App.Views;
 
 public partial class SettingsView : UserControl
 {
     private VaultSession? _session;
+    private string? _updateUrl;
 
     public SettingsView()
     {
@@ -18,6 +21,8 @@ public partial class SettingsView : UserControl
     {
         _session = session;
         VaultPathText.Text = session.VaultPath;
+        CurrentVersionText.Text = $"الإصدار الحالي: {UpdateService.CurrentVersion}";
+        AboutVersionText.Text = $"مدير كلمات المرور — الإصدار {UpdateService.CurrentVersion}";
     }
 
     public void Detach()
@@ -91,6 +96,83 @@ public partial class SettingsView : UserControl
         catch
         {
             // تجاهل
+        }
+    }
+
+    private async void CheckUpdates_Click(object sender, RoutedEventArgs e)
+    {
+        UpdateStatusText.Text = "جاري التحقق من التحديثات...";
+        UpdateStatusText.Foreground = (Brush)FindResource("TextMutedBrush");
+        DownloadUpdateButton.Visibility = Visibility.Collapsed;
+
+        var info = await Task.Run(UpdateService.CheckLatestAsync);
+
+        if (info is null)
+        {
+            UpdateStatusText.Text = "تعذّر الاتصال بالخادم. تأكد من اتصالك بالإنترنت.";
+            UpdateStatusText.Foreground = (Brush)FindResource("DangerBrush");
+            return;
+        }
+
+        if (UpdateService.IsNewer(info.Version, UpdateService.CurrentVersion))
+        {
+            _updateUrl = string.IsNullOrEmpty(info.DownloadUrl) ? info.ReleaseUrl : info.DownloadUrl;
+            UpdateStatusText.Text = $"يتوفر تحديث جديد: الإصدار {info.Version}";
+            UpdateStatusText.Foreground = (Brush)FindResource("WarningBrush");
+            DownloadUpdateButton.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            UpdateStatusText.Text = "أنت على أحدث إصدار ✅";
+            UpdateStatusText.Foreground = (Brush)FindResource("SuccessBrush");
+        }
+    }
+
+    public void SetUpdateAvailable(string version, string url)
+    {
+        _updateUrl = url;
+        UpdateStatusText.Text = $"يتوفر تحديث جديد: الإصدار {version}";
+        UpdateStatusText.Foreground = (Brush)FindResource("WarningBrush");
+        DownloadUpdateButton.Visibility = Visibility.Visible;
+    }
+
+    private void DownloadUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(_updateUrl)) return;
+        try { Process.Start(new ProcessStartInfo(_updateUrl) { UseShellExecute = true }); }
+        catch { /* تجاهل */ }
+    }
+
+    private void CreateShortcut_Click(object sender, RoutedEventArgs e)
+    {
+        ShortcutMessage.Visibility = Visibility.Collapsed;
+        try
+        {
+            var exe = Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
+            var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            var shortcutPath = System.IO.Path.Combine(desktop, "مدير كلمات المرور.lnk");
+
+            var shellType = Type.GetTypeFromProgID("WScript.Shell");
+            if (shellType is null)
+                throw new InvalidOperationException("WScript.Shell غير متوفر.");
+
+            dynamic shell = Activator.CreateInstance(shellType)!;
+            dynamic shortcut = shell.CreateShortcut(shortcutPath);
+            shortcut.TargetPath = exe;
+            shortcut.WorkingDirectory = System.IO.Path.GetDirectoryName(exe) ?? string.Empty;
+            shortcut.IconLocation = $"{exe},0";
+            shortcut.Description = "مدير كلمات المرور";
+            shortcut.Save();
+
+            ShortcutMessage.Text = "✓ تم إنشاء الاختصار على سطح المكتب.";
+            ShortcutMessage.Foreground = (Brush)FindResource("SuccessBrush");
+            ShortcutMessage.Visibility = Visibility.Visible;
+        }
+        catch (Exception ex)
+        {
+            ShortcutMessage.Text = $"✗ فشل الإنشاء: {ex.Message}";
+            ShortcutMessage.Foreground = (Brush)FindResource("DangerBrush");
+            ShortcutMessage.Visibility = Visibility.Visible;
         }
     }
 

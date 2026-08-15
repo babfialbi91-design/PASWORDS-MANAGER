@@ -17,13 +17,15 @@
                            HorizontalAlignment="Center" Margin="0,8,0,0"/>
 
                 <StackPanel Margin="0,28,0,0">
-                    <TextBlock Text="كلمة المرور الرئيسية" FontSize="12"
+                    <TextBlock Text="كلمة المرور الرئيسية (8 أحرف على الأقل)" FontSize="12"
                                Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
                     <Grid>
                         <PasswordBox x:Name="PasswordInput" Padding="10,8" FontSize="14"
-                                     PasswordChanged="PasswordInput_PasswordChanged"/>
+                                     PasswordChanged="PasswordInput_PasswordChanged"
+                                     KeyDown="Input_KeyDown"/>
                         <TextBox x:Name="PasswordText" Padding="10,8" FontSize="14"
-                                 Visibility="Collapsed" TextChanged="PasswordText_TextChanged"/>
+                                 Visibility="Collapsed" TextChanged="PasswordText_TextChanged"
+                                 KeyDown="Input_KeyDown"/>
                     </Grid>
 
                     <Grid Margin="0,10,0,0">
@@ -39,9 +41,11 @@
                 </StackPanel>
 
                 <StackPanel x:Name="ConfirmPanel" Visibility="Collapsed" Margin="0,16,0,0">
-                    <TextBlock Text="تأكيد كلمة المرور" FontSize="12"
+                    <TextBlock Text="إعادة كتابة كلمة المرور للتأكيد" FontSize="12"
                                Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,6"/>
-                    <PasswordBox x:Name="ConfirmInput" Padding="10,8" FontSize="14"/>
+                    <PasswordBox x:Name="ConfirmInput" Padding="10,8" FontSize="14"
+                                 PasswordChanged="ConfirmInput_PasswordChanged" KeyDown="Input_KeyDown"/>
+                    <TextBlock x:Name="ConfirmHintText" FontSize="11" Visibility="Collapsed" Margin="0,6,0,0"/>
                 </StackPanel>
 
                 <TextBlock x:Name="ErrorText" Foreground="{StaticResource DangerBrush}" FontSize="12"

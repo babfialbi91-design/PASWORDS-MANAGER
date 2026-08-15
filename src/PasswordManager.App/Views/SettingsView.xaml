@@ -60,13 +60,57 @@
                 </StackPanel>
             </Border>
 
+            <!-- التحديثات -->
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="22,18" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="🔄  التحديثات" FontSize="16" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock x:Name="CurrentVersionText" FontSize="13" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="UpdateStatusText" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                                       TextWrapping="Wrap" Margin="0,6,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Content="🔄  التحقق من التحديثات" Style="{StaticResource GhostButton}"
+                                    Margin="10,0,0,0" Click="CheckUpdates_Click"/>
+                            <Button x:Name="DownloadUpdateButton" Content="⬇️  تحميل التحديث" Style="{StaticResource PrimaryButton}"
+                                    Margin="10,0,0,0" Visibility="Collapsed" Click="DownloadUpdate_Click"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="مشروع مفتوح المصدر — يتم جلب آخر إصدار تلقائياً من GitHub عند كل فتح."
+                               FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,12,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- سطح المكتب -->
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="22,18" Margin="0,16,0,0">
+                <StackPanel>
+                    <TextBlock Text="🖥️  الوصول السريع" FontSize="16" FontWeight="Bold" Margin="0,0,0,12"/>
+                    <TextBlock Text="أنشئ اختصاراً للتطبيق على سطح المكتب ليسهل الوصول إليه."
+                               FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button Content="📌  إنشاء اختصار على سطح المكتب" Style="{StaticResource GhostButton}"
+                                HorizontalAlignment="Left" Click="CreateShortcut_Click"/>
+                        <TextBlock x:Name="ShortcutMessage" FontSize="12" Foreground="{StaticResource SuccessBrush}"
+                                   VerticalAlignment="Center" Margin="14,0,0,0" Visibility="Collapsed"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <!-- حول -->
             <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12"
                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="22,18" Margin="0,16,0,0">
                 <StackPanel>
                     <TextBlock Text="ℹ️  حول" FontSize="16" FontWeight="Bold" Margin="0,0,0,8"/>
-                    <TextBlock Text="مدير كلمات المرور — الإصدار 1.0.0"
-                               FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                    <TextBlock x:Name="AboutVersionText" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
                     <TextBlock Text="تشفير AES-256-GCM مع مفتاح PBKDF2-SHA256 (600,000 جولة) — جميع البيانات محلية على جهازك."
                                FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0"/>
                 </StackPanel>

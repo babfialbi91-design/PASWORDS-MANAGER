@@ -63,10 +63,39 @@
 
             <!-- منطقة المحتوى -->
             <Grid Grid.Column="1">
-                <views:PasswordsView x:Name="PasswordsView" Visibility="Visible"/>
-                <views:GeneratorView x:Name="GeneratorView" Visibility="Collapsed"/>
-                <views:TotpView x:Name="TotpView" Visibility="Collapsed"/>
-                <views:SettingsView x:Name="SettingsView" Visibility="Collapsed"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- شريط التحديثات -->
+                <Border x:Name="UpdateBar" Grid.Row="0" Visibility="Collapsed"
+                        Background="#1B4D2E" CornerRadius="0" Padding="20,10" Margin="0,0,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔄" FontSize="15" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="UpdateBarText" Text="يتوفر تحديث جديد" FontSize="13"
+                                       Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            <Button x:Name="UpdateDownloadButton" Content="تحميل التحديث" FontSize="12"
+                                    Foreground="White" Background="#2E7D4F" BorderThickness="0"
+                                    Padding="12,5" Margin="16,0,0,0" Cursor="Hand"
+                                    Click="UpdateDownloadButton_Click"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="✕" Foreground="#BFE3CE" Background="Transparent"
+                                BorderThickness="0" FontSize="14" Cursor="Hand" Click="DismissUpdateBar_Click"/>
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Row="1">
+                    <views:PasswordsView x:Name="PasswordsView" Visibility="Visible"/>
+                    <views:GeneratorView x:Name="GeneratorView" Visibility="Collapsed"/>
+                    <views:TotpView x:Name="TotpView" Visibility="Collapsed"/>
+                    <views:SettingsView x:Name="SettingsView" Visibility="Collapsed"/>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Windows;
@@ -11,6 +12,7 @@ public partial class MainWindow : Window
 {
     private VaultSession? _session;
     private string _activeView = "passwords";
+    private string? _updateUrl;
 
     public MainWindow()
     {
@@ -56,6 +58,38 @@ public partial class MainWindow : Window
         SettingsView.Attach(_session);
 
         ShowView("passwords");
+        _ = CheckForUpdatesAsync();
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            var info = await Task.Run(UpdateService.CheckLatestAsync);
+            if (info is null || !UpdateService.IsNewer(info.Version, UpdateService.CurrentVersion))
+                return;
+
+            _updateUrl = string.IsNullOrEmpty(info.DownloadUrl) ? info.ReleaseUrl : info.DownloadUrl;
+            UpdateBarText.Text = $"يتوفر تحديث جديد: الإصدار {info.Version}";
+            UpdateBar.Visibility = Visibility.Visible;
+            SettingsView.SetUpdateAvailable(info.Version, _updateUrl);
+        }
+        catch
+        {
+            // تجاهل فشل فحص التحديثات
+        }
+    }
+
+    private void UpdateDownloadButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(_updateUrl)) return;
+        try { Process.Start(new ProcessStartInfo(_updateUrl) { UseShellExecute = true }); }
+        catch { /* تجاهل */ }
+    }
+
+    private void DismissUpdateBar_Click(object sender, RoutedEventArgs e)
+    {
+        UpdateBar.Visibility = Visibility.Collapsed;
     }
 
     private void NavButton_Click(object sender, RoutedEventArgs e)

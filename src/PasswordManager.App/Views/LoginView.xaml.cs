@@ -11,7 +11,17 @@ public partial class LoginView : UserControl
 {
     public VaultService? Vault { get; set; }
 
-    public bool IsSetupMode { get; set; }
+    private bool _isSetupMode;
+    public bool IsSetupMode
+    {
+        get => _isSetupMode;
+        set
+        {
+            if (_isSetupMode == value) return;
+            _isSetupMode = value;
+            ApplyMode();
+        }
+    }
 
     public string MasterPassword { get; private set; } = string.Empty;
 
@@ -115,6 +125,41 @@ public partial class LoginView : UserControl
         StrengthText.Foreground = color;
     }
 
+    private void ConfirmInput_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (!IsSetupMode || string.IsNullOrEmpty(ConfirmInput.Password))
+        {
+            ConfirmHintText.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var match = ConfirmInput.Password == CurrentPassword();
+        ConfirmHintText.Visibility = Visibility.Visible;
+        if (match)
+        {
+            ConfirmHintText.Text = "✓ متطابقة";
+            ConfirmHintText.Foreground = (Brush)FindResource("SuccessBrush");
+        }
+        else
+        {
+            ConfirmHintText.Text = "غير متطابقة — راجع كلمة المرور";
+            ConfirmHintText.Foreground = (Brush)FindResource("DangerBrush");
+        }
+    }
+
+    private void Input_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key != System.Windows.Input.Key.Enter) return;
+        if (IsSetupMode && sender == PasswordInput && CurrentPassword().Length >= 8)
+        {
+            ConfirmInput.Focus();
+            e.Handled = true;
+            return;
+        }
+        ActionButton_Click(sender, e);
+        e.Handled = true;
+    }
+
     private string CurrentPassword() =>
         ShowPassword.IsChecked == true ? PasswordText.Text : PasswordInput.Password;
 
@@ -132,11 +177,20 @@ public partial class LoginView : UserControl
                 if (password.Length < 8)
                 {
                     SetError("كلمة المرور يجب أن تكون 8 أحرف على الأقل.");
+                    PasswordInput.Focus();
+                    return;
+                }
+                if (string.IsNullOrEmpty(ConfirmInput.Password))
+                {
+                    SetError("أعد كتابة نفس كلمة المرور في حقل التأكيد ثم تابع.");
+                    ConfirmInput.Focus();
                     return;
                 }
                 if (password != ConfirmInput.Password)
                 {
-                    SetError("كلمتا المرور غير متطابقتين.");
+                    SetError("كلمتا المرور غير متطابقتين — تأكد أنهما متماثلتان.");
+                    ConfirmInput.SelectAll();
+                    ConfirmInput.Focus();
                     return;
                 }
 
