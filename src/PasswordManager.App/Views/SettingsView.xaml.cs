@@ -11,6 +11,7 @@ public partial class SettingsView : UserControl
 {
     private VaultSession? _session;
     private string? _updateUrl;
+    private string? _updateVersion;
     private string? _statusKey;
     private object?[]? _statusArgs;
 
@@ -150,6 +151,7 @@ public partial class SettingsView : UserControl
 
         if (UpdateService.IsNewer(info.Version, UpdateService.CurrentVersion))
         {
+            _updateVersion = info.Version;
             _updateUrl = string.IsNullOrEmpty(info.DownloadUrl) ? info.ReleaseUrl : info.DownloadUrl;
             RenderUpdateStatus("Settings_NewAvailable", new object[] { info.Version });
             DownloadUpdateButton.Visibility = Visibility.Visible;
@@ -162,6 +164,7 @@ public partial class SettingsView : UserControl
 
     public void SetUpdateAvailable(string version, string url)
     {
+        _updateVersion = version;
         _updateUrl = url;
         RenderUpdateStatus("Settings_NewAvailable", new object[] { version });
         DownloadUpdateButton.Visibility = Visibility.Visible;
@@ -169,9 +172,10 @@ public partial class SettingsView : UserControl
 
     private void DownloadUpdate_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(_updateUrl)) return;
-        try { Process.Start(new ProcessStartInfo(_updateUrl) { UseShellExecute = true }); }
-        catch { /* تجاهل */ }
+        if (string.IsNullOrEmpty(_updateUrl) || string.IsNullOrEmpty(_updateVersion)) return;
+        var window = Window.GetWindow(this);
+        if (window is null) return;
+        Dialogs.UpdateFlow.Start(window, _updateVersion, _updateUrl);
     }
 
     private void CreateShortcut_Click(object sender, RoutedEventArgs e)

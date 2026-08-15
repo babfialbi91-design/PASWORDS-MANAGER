@@ -3,6 +3,22 @@ using System.Text.Json;
 
 namespace PasswordManager.Services;
 
+public static class UpdatePaths
+{
+    public static string DownloadFolder
+    {
+        get
+        {
+            var folder = Path.Combine(Path.GetTempPath(), "PasswordManagerUpdate");
+            Directory.CreateDirectory(folder);
+            return folder;
+        }
+    }
+
+    public static string InstallerPath(string version)
+        => Path.Combine(DownloadFolder, $"PasswordManagerSetup-{version}.exe");
+}
+
 /// <summary>
 /// معلومات آخر إصدار متاح على GitHub.
 /// </summary>
@@ -23,11 +39,16 @@ public static class UpdateService
 {
     private const string Repo = "babfialbi91-design/PAS-MAN-RELEASES";
     private static readonly HttpClient Http = CreateClient();
+    private static readonly HttpClient DownloadClient = CreateDownloadClient();
 
     public static string CurrentVersion
     {
         get
         {
+            var forced = Environment.GetEnvironmentVariable("PM_FORCE_VERSION");
+            if (!string.IsNullOrWhiteSpace(forced))
+                return forced;
+
             var assembly = Assembly.GetEntryAssembly() ?? typeof(UpdateService).Assembly;
             return assembly.GetName().Version?.ToString(3) ?? "1.0.0";
         }
@@ -37,6 +58,13 @@ public static class UpdateService
     {
         var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
         client.DefaultRequestHeaders.UserAgent.ParseAdd("PasswordManager-UpdateChecker/1.0");
+        return client;
+    }
+
+    private static HttpClient CreateDownloadClient()
+    {
+        var client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("PasswordManager-Updater/1.0");
         return client;
     }
 
@@ -92,5 +120,27 @@ public static class UpdateService
         if (Version.TryParse(latest, out var latestVersion) && Version.TryParse(current, out var currentVersion))
             return latestVersion > currentVersion;
         return !string.IsNullOrEmpty(latest) && !string.Equals(latest, current, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static async Task DownloadAsync(string url, string destPath, IProgress<double>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await DownloadClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        var total = response.Content.Headers.ContentLength ?? -1;
+        await using var input = await response.Content.ReadAsStreamAsync(cancellationToken);
+        await using var output = File.Create(destPath);
+
+        var buffer = new byte[81920];
+        long read = 0;
+        int bytes;
+        while ((bytes = await input.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken)) > 0)
+        {
+            await output.WriteAsync(buffer.AsMemory(0, bytes), cancellationToken);
+            read += bytes;
+            if (total > 0)
+                progress?.Report((double)read / total);
+        }
     }
 }

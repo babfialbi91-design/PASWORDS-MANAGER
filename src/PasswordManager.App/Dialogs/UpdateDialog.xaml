@@ -1,0 +1,40 @@
+<Window x:Class="PasswordManager.App.Dialogs.UpdateDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:PasswordManager.App"
+        Title="{Binding [Update_Title], Source={x:Static loc:Localization.Instance}}"
+        Width="480" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="{StaticResource BackgroundBrush}" FontFamily="Segoe UI"
+        WindowStyle="SingleBorderWindow" ShowInTaskbar="False">
+
+    <Grid Margin="26,22,26,22">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="DialogTitle" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+
+        <TextBlock x:Name="DialogMessage" Grid.Row="1" FontSize="13"
+                   Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+
+        <StackPanel x:Name="ProgressPanel" Grid.Row="2" Margin="0,16,0,0" Visibility="Collapsed">
+            <ProgressBar x:Name="DownloadProgress" Height="10" Minimum="0" Maximum="100"/>
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <TextBlock x:Name="PercentText" FontSize="12" Foreground="{StaticResource TextMutedBrush}"/>
+                <TextBlock x:Name="SizeText" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="12,0,0,0"/>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel x:Name="ButtonsPanel" Grid.Row="2" Orientation="Horizontal" Margin="0,18,0,0" Visibility="Collapsed">
+            <Button x:Name="RestartNowButton" Style="{StaticResource PrimaryButton}" MinWidth="150"
+                    Click="RestartNowButton_Click"/>
+            <Button x:Name="LaterButton" Style="{StaticResource GhostButton}" MinWidth="90" Margin="10,0,0,0"
+                    Click="LaterButton_Click" IsCancel="True"/>
+            <Button x:Name="CloseButton" Style="{StaticResource GhostButton}" MinWidth="90" Margin="10,0,0,0"
+                    Click="CloseButton_Click" IsCancel="True" Visibility="Collapsed"/>
+        </StackPanel>
+    </Grid>
+</Window>

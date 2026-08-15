@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Windows;
@@ -97,9 +96,8 @@ public partial class MainWindow : Window
 
     private void UpdateDownloadButton_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(_updateUrl)) return;
-        try { Process.Start(new ProcessStartInfo(_updateUrl) { UseShellExecute = true }); }
-        catch { /* تجاهل */ }
+        if (string.IsNullOrEmpty(_updateUrl) || string.IsNullOrEmpty(_updateVersion)) return;
+        Dialogs.UpdateFlow.Start(this, _updateVersion, _updateUrl);
     }
 
     private void DismissUpdateBar_Click(object sender, RoutedEventArgs e)
