@@ -21,7 +21,7 @@ public sealed class UpdateInfo
 /// </summary>
 public static class UpdateService
 {
-    private const string Repo = "babfialbi91-design/PASWORDS-MANAGER";
+    private const string Repo = "babfialbi91-design/PAS-MAN-RELEASES";
     private static readonly HttpClient Http = CreateClient();
 
     public static string CurrentVersion
