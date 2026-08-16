@@ -29,7 +29,9 @@ public sealed class Localization : INotifyPropertyChanged
         {
             if (_language == value) return;
             _language = value;
-            new AppSettings { Language = value }.Save();
+            var settings = AppSettings.Load();
+            settings.Language = value;
+            settings.Save();
             LanguageChanged?.Invoke();
             OnPropertyChanged(nameof(Language));
             OnPropertyChanged("Item[]");
@@ -67,6 +69,7 @@ public sealed class Localization : INotifyPropertyChanged
         ["Sidebar_NavPasswords"] = "🔑  كلمات المرور",
         ["Sidebar_NavGenerator"] = "🎲  مولد كلمات المرور",
         ["Sidebar_NavTotp"] = "⏱️  رموز TOTP",
+        ["Sidebar_NavBrowsers"] = "🌐  المتصفحات",
         ["Sidebar_NavSettings"] = "⚙️  الإعدادات",
 
         ["Update_BarNew"] = "يتوفر تحديث جديد: الإصدار {0}",
@@ -249,7 +252,42 @@ public sealed class Localization : INotifyPropertyChanged
         ["TotpDialog_ErrSecret"] = "أدخل المفتاح السري أو رابط otpauth.",
         ["TotpDialog_ErrInvalidInput"] = "تعذّر قراءة المفتاح. تأكد من صحته (أحرف A-Z و2-7 فقط).",
         ["TotpDialog_ErrName"] = "أدخل اسم الحساب.",
-        ["TotpDialog_ErrKey"] = "المفتاح غير صالح: {0}"
+        ["TotpDialog_ErrKey"] = "المفتاح غير صالح: {0}",
+
+        ["Bridge_Title"] = "🌐  المتصفحات المرتبطة",
+        ["Bridge_Sub"] = "اربط متصفحاتك ليُعبأ اسم المستخدم وكلمة المرور ورمز TOTP تلقائياً — مع موافقتك قبل كل تعبئة.",
+        ["Bridge_BrowsersList"] = "المتصفحات المدعومة",
+        ["Bridge_Linked"] = "✓ مرتبط",
+        ["Bridge_NotLinked"] = "غير مرتبط",
+        ["Bridge_NotSupported"] = "كتابة فقط",
+        ["Bridge_LinkBtn"] = "➕  ربط",
+        ["Bridge_UnlinkBtn"] = "✗  إلغاء الربط",
+        ["Bridge_DetectFailed"] = "لم نعثر على المتصفح على هذا الجهاز.",
+        ["Bridge_LinkOk"] = "✓ تم الربط. أكمل خطوة تحميل الامتداد من التعليمات أعلاه.",
+        ["Bridge_LinkFailed"] = "✗ فشل الربط. تحقق من الصلاحيات وأعد المحاولة.",
+        ["Bridge_TypeOnlyOk"] = "✓ تم الربط عبر جسر الكتابة — استخدم الاختصار في أي حقل.",
+        ["Bridge_ExtTitle"] = "ربط الامتداد في {0} — خطوتان",
+        ["Bridge_ExtSteps"] = "1) افتح المتصفح والصق هذا الرابط في شريط العنوان ثم اضغط Enter:\n{0}\n\n2) فعّل «وضع المطوّر» أعلى الصفحة، ثم اضغط «تحميل غير معبّاة» (Load unpacked) واختر هذا المجلد:\n{1}",
+        ["Bridge_OpenFolder"] = "📂  فتح مجلد الامتداد",
+        ["Bridge_HotkeyTitle"] = "⌨️  جسر الكتابة (اختصار عام)",
+        ["Bridge_HotkeyDesc"] = "اختصار يفتح لوحة الاختيار لكتابة البيانات في أي حقل نشط دون الحاجة إلى امتداد — يعمل مع كل المتصفحات.",
+        ["Bridge_TypingEnabled"] = "تفعيل جسر الكتابة",
+        ["Bridge_HotkeyChange"] = "تغيير",
+        ["Bridge_HotkeyCaptureTip"] = "اضغط المجموعة الجديدة الآن...",
+        ["Bridge_TypeNow"] = "⌨️  الكتابة الآن",
+        ["Bridge_PaletteTitle"] = "⌨️  لوحة التعبئة السريعة",
+        ["Bridge_PaletteSub"] = "اختر حساباً، حدد ما تريد كتابته، ثم اضغط «الكتابة الآن» — سيتحول التركيز إلى المتصفح.",
+        ["Bridge_CodePreview"] = "الرمز: {0}   (يتجدد بعد {1} ث)",
+        ["Bridge_NoMatch"] = "لا يوجد حساب مطابق لهذا الموقع في الخزنة.",
+        ["Bridge_FillTitle"] = "تعبئة تلقائية",
+        ["Bridge_FillRequestTitle"] = "طلب تعبئة من المتصفح",
+        ["Bridge_ChooseAccount"] = "اختر الحساب",
+        ["Bridge_FillUsername"] = "تعبئة اسم المستخدم",
+        ["Bridge_FillPassword"] = "تعبئة كلمة المرور",
+        ["Bridge_FillTotp"] = "تعبئة رمز TOTP",
+        ["Bridge_ChooseCode"] = "اختر حساب الرمز",
+        ["Bridge_FillNow"] = "✓  تعبئة الآن",
+        ["Bridge_LockedMsg"] = "الخزنة مقفلة — افتحها أولاً ثم أعد المحاولة."
     };
 
     public static readonly Dictionary<string, string> En = new()
@@ -265,6 +303,7 @@ public sealed class Localization : INotifyPropertyChanged
         ["Sidebar_NavPasswords"] = "🔑  Passwords",
         ["Sidebar_NavGenerator"] = "🎲  Password Generator",
         ["Sidebar_NavTotp"] = "⏱️  TOTP Codes",
+        ["Sidebar_NavBrowsers"] = "🌐  Browsers",
         ["Sidebar_NavSettings"] = "⚙️  Settings",
 
         ["Update_BarNew"] = "A new update is available: version {0}",
@@ -447,6 +486,41 @@ public sealed class Localization : INotifyPropertyChanged
         ["TotpDialog_ErrSecret"] = "Enter the secret key or an otpauth link.",
         ["TotpDialog_ErrInvalidInput"] = "Could not read the key. Make sure it is valid (A-Z and 2-7 only).",
         ["TotpDialog_ErrName"] = "Enter the account name.",
-        ["TotpDialog_ErrKey"] = "The key is invalid: {0}"
+        ["TotpDialog_ErrKey"] = "The key is invalid: {0}",
+
+        ["Bridge_Title"] = "🌐  Linked Browsers",
+        ["Bridge_Sub"] = "Link your browsers so username, password and TOTP code are filled automatically — with your approval before every fill.",
+        ["Bridge_BrowsersList"] = "Supported browsers",
+        ["Bridge_Linked"] = "✓ Linked",
+        ["Bridge_NotLinked"] = "Not linked",
+        ["Bridge_NotSupported"] = "Typing only",
+        ["Bridge_LinkBtn"] = "➕  Link",
+        ["Bridge_UnlinkBtn"] = "✗  Unlink",
+        ["Bridge_DetectFailed"] = "Could not find this browser on your device.",
+        ["Bridge_LinkOk"] = "✓ Linked. Finish the extension step from the instructions above.",
+        ["Bridge_LinkFailed"] = "✗ Linking failed. Check permissions and try again.",
+        ["Bridge_TypeOnlyOk"] = "✓ Linked via the typing bridge — use the hotkey in any field.",
+        ["Bridge_ExtTitle"] = "Link the extension in {0} — two steps",
+        ["Bridge_ExtSteps"] = "1) Open the browser and paste this address into the address bar, then press Enter:\n{0}\n\n2) Enable \"Developer mode\" at the top, then click \"Load unpacked\" and choose this folder:\n{1}",
+        ["Bridge_OpenFolder"] = "📂  Open extension folder",
+        ["Bridge_HotkeyTitle"] = "⌨️  Typing bridge (global hotkey)",
+        ["Bridge_HotkeyDesc"] = "A hotkey that opens the picker to type data into any focused field without an extension — works with every browser.",
+        ["Bridge_TypingEnabled"] = "Enable typing bridge",
+        ["Bridge_HotkeyChange"] = "Change",
+        ["Bridge_HotkeyCaptureTip"] = "Press the new combination now...",
+        ["Bridge_TypeNow"] = "⌨️  Type now",
+        ["Bridge_PaletteTitle"] = "⌨️  Quick fill palette",
+        ["Bridge_PaletteSub"] = "Choose an account, pick what to type, then press \"Type now\" — focus returns to the browser.",
+        ["Bridge_CodePreview"] = "Code: {0}   (refreshes in {1}s)",
+        ["Bridge_NoMatch"] = "No matching account for this site in the vault.",
+        ["Bridge_FillTitle"] = "Autofill",
+        ["Bridge_FillRequestTitle"] = "Fill request from the browser",
+        ["Bridge_ChooseAccount"] = "Choose the account",
+        ["Bridge_FillUsername"] = "Fill username",
+        ["Bridge_FillPassword"] = "Fill password",
+        ["Bridge_FillTotp"] = "Fill TOTP code",
+        ["Bridge_ChooseCode"] = "Choose the code account",
+        ["Bridge_FillNow"] = "✓  Fill now",
+        ["Bridge_LockedMsg"] = "The vault is locked — unlock it first, then try again."
     };
 }

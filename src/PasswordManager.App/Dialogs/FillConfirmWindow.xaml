@@ -1,0 +1,67 @@
+<Window x:Class="PasswordManager.App.Dialogs.FillConfirmWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:PasswordManager.App"
+        Title="{Binding [Bridge_FillTitle], Source={x:Static loc:Localization.Instance}}"
+        Height="620" Width="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Background="{StaticResource BackgroundBrush}"
+        FontFamily="Segoe UI">
+
+    <Grid Margin="24,20,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="SiteTitleText" FontSize="18" FontWeight="Bold" TextWrapping="Wrap"/>
+        <TextBlock x:Name="SiteUrlText" Grid.Row="1" FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+
+        <StackPanel Grid.Row="2" Margin="0,14,0,0">
+            <TextBox x:Name="SearchBox" Visibility="Collapsed" Padding="10,8" Margin="0,0,0,8"
+                     TextChanged="SearchBox_TextChanged"/>
+            <TextBlock Text="{Binding [Bridge_ChooseAccount], Source={x:Static loc:Localization.Instance}}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,6"/>
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="10,6">
+                <ScrollViewer MaxHeight="168" VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="EntriesPanel"/>
+                </ScrollViewer>
+            </Border>
+            <TextBlock x:Name="NoMatchText" Visibility="Collapsed" FontSize="12" Foreground="{StaticResource WarningBrush}" Margin="0,8,0,0" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <Border Grid.Row="3" Background="{StaticResource SurfaceBrush}" CornerRadius="10"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="12,8" Margin="0,12,0,0">
+            <StackPanel>
+                <CheckBox x:Name="FillUsernameCheck" Content="{Binding [Bridge_FillUsername], Source={x:Static loc:Localization.Instance}}" Margin="0,2"/>
+                <CheckBox x:Name="FillPasswordCheck" Content="{Binding [Bridge_FillPassword], Source={x:Static loc:Localization.Instance}}" Margin="0,8,0,2"/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="4" x:Name="TotpPanel" Background="{StaticResource SurfaceBrush}" CornerRadius="10"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="12,10" Margin="0,12,0,0">
+            <StackPanel>
+                <CheckBox x:Name="FillTotpCheck" Content="{Binding [Bridge_FillTotp], Source={x:Static loc:Localization.Instance}}"/>
+                <StackPanel x:Name="TotpChoicePanel" Visibility="Collapsed" Margin="22,8,0,0">
+                    <TextBlock Text="{Binding [Bridge_ChooseCode], Source={x:Static loc:Localization.Instance}}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5"/>
+                    <ComboBox x:Name="TotpBox"/>
+                    <TextBlock x:Name="TotpPreviewText" FontSize="16" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,8,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <TextBlock x:Name="MessageText" Grid.Row="5" FontSize="12" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,12,0,0" VerticalAlignment="Top"/>
+
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,16,0,0">
+            <Button x:Name="FillButton" Content="{Binding [Bridge_FillNow], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource PrimaryButton}" MinWidth="150" Click="FillButton_Click"/>
+            <Button Content="{Binding [Common_Cancel], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource GhostButton}" Margin="10,0,0,0" Click="Cancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using PasswordManager.App.Bridge;
 using PasswordManager.Models;
 using PasswordManager.Services;
 
@@ -18,6 +19,9 @@ public partial class MainWindow : Window
     private string? _updateVersion;
     private readonly DispatcherTimer _autoLockTimer;
     private DateTime _lastActivity = DateTime.UtcNow;
+
+    private readonly BridgeServer _bridgeServer = new();
+    private HotkeyManager? _hotkeyManager;
 
     public MainWindow()
     {
@@ -35,7 +39,7 @@ public partial class MainWindow : Window
 
         VaultPathText.Text = path;
 
-        Loaded += (_, _) => LoginView.FocusFirst();
+        Loaded += OnLoaded;
 
         _autoLockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
         _autoLockTimer.Tick += AutoLockTimer_Tick;
@@ -43,6 +47,49 @@ public partial class MainWindow : Window
 
         PreviewMouseDown += (_, _) => _lastActivity = DateTime.UtcNow;
         PreviewKeyDown += (_, _) => _lastActivity = DateTime.UtcNow;
+
+        BrowsersView.HotkeyChanged += RegisterCurrentHotkey;
+
+        _bridgeServer.Start();
+        _bridgeServer.SetResolver(new FillController(() => _session, () => this).Resolve);
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        _hotkeyManager = new HotkeyManager();
+        _hotkeyManager.Attach(this);
+        _hotkeyManager.SetPressed(OnHotkeyPressed);
+        RegisterCurrentHotkey();
+        LoginView.FocusFirst();
+    }
+
+    private void OnHotkeyPressed()
+    {
+        var settings = AppSettings.Load();
+        if (!settings.TypingBridgeEnabled) return;
+
+        if (_session is null)
+        {
+            MessageBox.Show(this,
+                Localization.Get("Bridge_LockedMsg"),
+                Localization.Get("Common_Notice"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
+
+        TypingBridge.ShowAndType(_session, this);
+    }
+
+    private void RegisterCurrentHotkey()
+    {
+        var settings = AppSettings.Load();
+        var registered = settings.TypingBridgeEnabled
+            && _hotkeyManager is not null
+            && _hotkeyManager.Register(settings.HotkeyModifiers, settings.HotkeyKey);
+
+        if (_hotkeyManager is not null && !registered && settings.TypingBridgeEnabled)
+            App.Log("Hotkey", new InvalidOperationException("RegisterHotKey فشل — ربما الاختصار مستخدم في تطبيق آخر."));
     }
 
     private void OnLanguageChanged()
@@ -80,6 +127,7 @@ public partial class MainWindow : Window
         PasswordsView.Attach(_session);
         GeneratorView.Attach(_session);
         TotpView.Attach(_session);
+        BrowsersView.Attach(_session);
         SettingsView.Attach(_session);
 
         _lastActivity = DateTime.UtcNow;
@@ -176,6 +224,7 @@ public partial class MainWindow : Window
         PasswordsView.Visibility = tag == "passwords" ? Visibility.Visible : Visibility.Collapsed;
         GeneratorView.Visibility = tag == "generator" ? Visibility.Visible : Visibility.Collapsed;
         TotpView.Visibility = tag == "totp" ? Visibility.Visible : Visibility.Collapsed;
+        BrowsersView.Visibility = tag == "browsers" ? Visibility.Visible : Visibility.Collapsed;
         SettingsView.Visibility = tag == "settings" ? Visibility.Visible : Visibility.Collapsed;
 
         SetNavState(tag);
@@ -187,6 +236,7 @@ public partial class MainWindow : Window
         NavPasswords.Background = activeTag == "passwords" ? (System.Windows.Media.Brush)FindResource("SurfaceAltBrush") : System.Windows.Media.Brushes.Transparent;
         NavGenerator.Background = activeTag == "generator" ? (System.Windows.Media.Brush)FindResource("SurfaceAltBrush") : System.Windows.Media.Brushes.Transparent;
         NavTotp.Background = activeTag == "totp" ? (System.Windows.Media.Brush)FindResource("SurfaceAltBrush") : System.Windows.Media.Brushes.Transparent;
+        NavBrowsers.Background = activeTag == "browsers" ? (System.Windows.Media.Brush)FindResource("SurfaceAltBrush") : System.Windows.Media.Brushes.Transparent;
         NavSettings.Background = activeTag == "settings" ? (System.Windows.Media.Brush)FindResource("SurfaceAltBrush") : System.Windows.Media.Brushes.Transparent;
     }
 
@@ -196,6 +246,7 @@ public partial class MainWindow : Window
         {
             case "passwords": PasswordsView.Refresh(); break;
             case "totp": TotpView.Refresh(); break;
+            case "browsers": BrowsersView.Refresh(); break;
         }
     }
 
@@ -225,6 +276,7 @@ public partial class MainWindow : Window
         PasswordsView.Detach();
         GeneratorView.Detach();
         TotpView.Detach();
+        BrowsersView.Detach();
         SettingsView.Detach();
 
         Dashboard.Visibility = Visibility.Collapsed;
@@ -234,6 +286,8 @@ public partial class MainWindow : Window
 
     protected override async void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
+        _hotkeyManager?.Dispose();
+        _bridgeServer.Dispose();
         if (_session is not null)
         {
             try { await _session.SaveAsync(); }

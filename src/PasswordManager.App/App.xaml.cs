@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using PasswordManager.App.Bridge;
 
 namespace PasswordManager.App;
 
@@ -15,6 +16,23 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         Localization.Instance.Language = AppSettings.Load().Language;
+
+        // وضع الجسر: تُطلقه المتصفحات عبر Native Messaging.
+        // يقرأ طلباً من stdin ويمره للتطبيق الرئيسي ثم يرد على stdout ويخرج.
+        if (Environment.GetCommandLineArgs().Contains(BridgeConstants.BridgeArg, StringComparer.OrdinalIgnoreCase))
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            try
+            {
+                Environment.ExitCode = BridgeHost.Run(Environment.GetCommandLineArgs());
+            }
+            catch
+            {
+                Environment.ExitCode = 1;
+            }
+            Shutdown();
+            return;
+        }
 
         if (!AcquireSingleInstance())
         {

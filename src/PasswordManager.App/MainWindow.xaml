@@ -56,6 +56,7 @@
                         <Button x:Name="NavPasswords" Content="{Binding [Sidebar_NavPasswords], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource NavButton}" Background="#23252E" Click="NavButton_Click" Tag="passwords"/>
                         <Button x:Name="NavGenerator" Content="{Binding [Sidebar_NavGenerator], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="generator"/>
                         <Button x:Name="NavTotp" Content="{Binding [Sidebar_NavTotp], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="totp"/>
+                        <Button x:Name="NavBrowsers" Content="{Binding [Sidebar_NavBrowsers], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="browsers"/>
                         <Button x:Name="NavSettings" Content="{Binding [Sidebar_NavSettings], Source={x:Static loc:Localization.Instance}}" Style="{StaticResource NavButton}" Click="NavButton_Click" Tag="settings"/>
                     </StackPanel>
                 </DockPanel>
@@ -94,6 +95,7 @@
                     <views:PasswordsView x:Name="PasswordsView" Visibility="Visible"/>
                     <views:GeneratorView x:Name="GeneratorView" Visibility="Collapsed"/>
                     <views:TotpView x:Name="TotpView" Visibility="Collapsed"/>
+                    <views:BrowsersView x:Name="BrowsersView" Visibility="Collapsed"/>
                     <views:SettingsView x:Name="SettingsView" Visibility="Collapsed"/>
                 </Grid>
             </Grid>
